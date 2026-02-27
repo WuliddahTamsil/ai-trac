@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}Pemeliharaan{% endblock %}
+{% block page_title %}Predictive Maintenance{% endblock %}
+
+{% block content %}
+<div class="page-heading fade-up">
+  <h1>Predictive Maintenance</h1>
+  <p>Health score komponen dan estimasi jadwal servis berikutnya</p>
+</div>
+
+<!-- OVERALL HEALTH -->
+<div class="card fade-up delay-1" style="margin-bottom:20px;background:linear-gradient(135deg,var(--navy),var(--navy-light));color:white;border:none">
+  <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+    <div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">Overall System Health</div>
+      <div style="font-family:'Syne',sans-serif;font-size:52px;font-weight:800;line-height:1" id="overallHealth">--</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:2px">%</div>
+    </div>
+    <div style="flex:1;min-width:200px">
+      <div style="background:rgba(255,255,255,0.1);border-radius:99px;height:12px;overflow:hidden">
+        <div id="overallBar" style="height:100%;background:linear-gradient(90deg,#10b981,#34d399);border-radius:99px;transition:width 1s ease;width:0%"></div>
+      </div>
+      <div style="margin-top:8px;display:flex;gap:16px">
+        <span id="healthStatus" style="font-size:13px;color:#10b981;font-weight:600">● Sistem Normal</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <div style="text-align:center;padding:12px 16px;background:rgba(255,255,255,0.08);border-radius:12px">
+        <div style="font-size:20px;font-weight:800;font-family:'Syne',sans-serif" id="compGood">--</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:2px">KOMPONEN BAIK</div>
+      </div>
+      <div style="text-align:center;padding:12px 16px;background:rgba(255,255,255,0.08);border-radius:12px">
+        <div style="font-size:20px;font-weight:800;font-family:'Syne',sans-serif;color:#f59e0b" id="compWarn">--</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:2px">PERLU PERHATIAN</div>
+      </div>
+      <div style="text-align:center;padding:12px 16px;background:rgba(255,255,255,0.08);border-radius:12px">
+        <div style="font-size:20px;font-weight:800;font-family:'Syne',sans-serif;color:#ef4444" id="compCrit">--</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:2px">KRITIS</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPONENT HEALTH GRID -->
+<div id="componentGrid" class="grid-2 fade-up delay-2" style="margin-bottom:20px">
+  <!-- Filled by JS -->
+</div>
+
+<!-- MAINTENANCE SCHEDULE -->
+<div class="card fade-up delay-3">
+  <div class="card-header">
+    <div class="card-title">📅 Jadwal Servis</div>
+    <button class="btn btn-sm btn-outline" onclick="loadMaintenance()">🔄 Refresh</button>
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Komponen</th>
+        <th>Health Score</th>
+        <th>Status</th>
+        <th>Servis Berikutnya</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody id="maintTable">
+      <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px">Memuat...</td></tr>
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadMaintenance() {
+  try {
+    const res = await fetch('/api/maintenance');
+    const data = await res.json();
+    renderMaintenance(data);
+  } catch(e) {}
+}
+
+function renderMaintenance(data) {
+  const { overall_health, components } = data;
+
+  el('overallHealth').textContent = overall_health.toFixed(0);
+  el('overallBar').style.width = overall_health + '%';
+  const barColor = overall_health >= 80 ? 'linear-gradient(90deg,#10b981,#34d399)' 
+                 : overall_health >= 60 ? 'linear-gradient(90deg,#f59e0b,#fbbf24)'
+                 : 'linear-gradient(90deg,#ef4444,#f87171)';
+  el('overallBar').style.background = barColor;
+
+  const good = components.filter(c => c.status === 'good').length;
+  const warn = components.filter(c => c.status === 'warning').length;
+  const crit = components.filter(c => c.status === 'critical').length;
+  el('compGood').textContent = good;
+  el('compWarn').textContent = warn;
+  el('compCrit').textContent = crit;
+
+  if (crit > 0) {
+    el('healthStatus').textContent = '⚠️ Perlu Perhatian Segera';
+    el('healthStatus').style.color = '#ef4444';
+  } else if (warn > 0) {
+    el('healthStatus').textContent = '⚡ Ada Komponen Perlu Perawatan';
+    el('healthStatus').style.color = '#f59e0b';
+  } else {
+    el('healthStatus').textContent = '● Sistem Normal';
+    el('healthStatus').style.color = '#10b981';
+  }
+
+  // Component cards
+  const grid = el('componentGrid');
+  grid.innerHTML = components.map(c => {
+    const colors = { good: 'var(--success)', warning: 'var(--warning)', critical: 'var(--danger)' };
+    const color = colors[c.status];
+    const pctFill = { good: 'green', warning: 'amber', critical: 'red' };
+    return `
+      <div class="card" style="border-left:3px solid ${color}">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-weight:700;font-size:14px">${c.name}</div>
+          <span class="badge badge-${c.status === 'good' ? 'success' : c.status === 'warning' ? 'warning' : 'danger'}" style="text-transform:capitalize">${c.status}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <div class="progress-track" style="flex:1">
+            <div class="progress-fill ${pctFill[c.status]}" style="width:${c.health}%"></div>
+          </div>
+          <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:${color}">${c.health.toFixed(0)}%</div>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted)">⏰ Servis berikutnya: <strong style="color:var(--text-secondary)">${c.next_service}</strong></div>
+      </div>
+    `;
+  }).join('');
+
+  // Table
+  const tbody = el('maintTable');
+  tbody.innerHTML = components.map(c => {
+    const statusMap = { good: 'badge-success', warning: 'badge-warning', critical: 'badge-danger' };
+    const labels = { good: 'Baik', warning: 'Perhatian', critical: 'Kritis' };
+    return `
+      <tr>
+        <td style="font-weight:600">${c.name}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="progress-track" style="width:80px">
+              <div class="progress-fill ${c.status === 'good' ? 'green' : c.status === 'warning' ? 'amber' : 'red'}" style="width:${c.health}%"></div>
+            </div>
+            <span>${c.health.toFixed(0)}%</span>
+          </div>
+        </td>
+        <td><span class="badge ${statusMap[c.status]}">${labels[c.status]}</span></td>
+        <td>${c.next_service}</td>
+        <td>
+          <button class="btn btn-sm btn-outline" onclick="alert('Jadwal servis ${c.name} direkam!')">📝 Catat</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadMaintenance();
+  setInterval(loadMaintenance, 10000);
+});
+</script>
+{% endblock %}

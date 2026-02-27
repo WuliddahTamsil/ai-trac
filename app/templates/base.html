@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}AI-TRAC{% endblock %} — AI-TRAC Autonomous</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="app-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <a href="/" class="sidebar-logo">
+      <div class="logo-icon">🚜</div>
+      <div>
+        <div class="logo-text">AI-TRAC</div>
+        <span class="logo-sub">Autonomous</span>
+      </div>
+    </a>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Utama</div>
+
+      <a href="/dashboard" class="nav-item {% if active == 'dashboard' %}active{% endif %}">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label" data-i18n="dashboard">Dasbor</span>
+      </a>
+      <a href="/control" class="nav-item {% if active == 'control' %}active{% endif %}">
+        <span class="nav-icon">🎮</span>
+        <span class="nav-label" data-i18n="control">Kontrol</span>
+      </a>
+      <a href="/ml-monitor" class="nav-item {% if active == 'ml' %}active{% endif %}">
+        <span class="nav-icon">🧠</span>
+        <span class="nav-label" data-i18n="ml_monitor">Monitor ML</span>
+      </a>
+
+      <div class="nav-section-label" style="margin-top:8px">Analitik</div>
+
+      <a href="/analytics" class="nav-item {% if active == 'analytics' %}active{% endif %}">
+        <span class="nav-icon">📈</span>
+        <span class="nav-label" data-i18n="analytics">Analitik</span>
+      </a>
+      <a href="/telemetry" class="nav-item {% if active == 'telemetry' %}active{% endif %}">
+        <span class="nav-icon">📡</span>
+        <span class="nav-label" data-i18n="telemetry">Telemetri</span>
+      </a>
+
+      <div class="nav-section-label" style="margin-top:8px">Operasional</div>
+
+      <a href="/maintenance" class="nav-item {% if active == 'maintenance' %}active{% endif %}">
+        <span class="nav-icon">🔧</span>
+        <span class="nav-label" data-i18n="maintenance">Pemeliharaan</span>
+      </a>
+      <a href="/history" class="nav-item {% if active == 'history' %}active{% endif %}">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label" data-i18n="history">Riwayat</span>
+      </a>
+      <a href="/settings" class="nav-item {% if active == 'settings' %}active{% endif %}">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-label" data-i18n="settings">Pengaturan</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="collapse-btn" onclick="Sidebar.toggleCollapse()" style="cursor:pointer">
+        <span id="collapseIcon">◀</span>
+        <span class="nav-label">Perkecil</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-content" id="mainContent">
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="topbar-hamburger icon-btn" onclick="Sidebar.openMobile()">☰</button>
+      <div class="topbar-title">{% block page_title %}Dashboard{% endblock %}</div>
+      <div class="topbar-badge">Online</div>
+      <div class="topbar-actions">
+        <div style="display:flex;gap:4px">
+          <button class="lang-btn btn btn-sm btn-outline" data-lang="id" onclick="LangManager.set('id')" style="padding:5px 10px;font-size:11px">ID</button>
+          <button class="lang-btn btn btn-sm btn-outline" data-lang="en" onclick="LangManager.set('en')" style="padding:5px 10px;font-size:11px">EN</button>
+        </div>
+        <button class="icon-btn" id="themeToggle" onclick="ThemeManager.toggle()" title="Toggle Theme">🌙</button>
+        <div class="notif-wrapper">
+          <button class="icon-btn" id="notifBtn" onclick="Notifications.toggle()">
+            🔔
+            <span class="badge-count" id="notifCount">2</span>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown">
+            <div class="notif-header">
+              <span>Notifikasi</span>
+              <span style="font-size:11px;color:var(--text-muted);cursor:pointer">Tandai semua</span>
+            </div>
+            <div id="notifList">
+              <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px">Memuat...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,108 @@
+{% extends "base/layout.html" %}
+{% set active = "maintenance" %}
+{% block title %}Maintenance{% endblock %}
+{% block page_title %}<i class="bi bi-tools" style="color:var(--primary)"></i> Predictive Maintenance{% endblock %}
+{% block content %}
+<div class="grid-2 mb-6" style="grid-template-columns:1fr 2fr;">
+  <!-- Overall Health -->
+  <div class="card">
+    <div class="card-header"><div class="card-title"><i class="bi bi-heart-pulse-fill"></i> Overall Health Score</div></div>
+    <div class="card-body" style="text-align:center;">
+      <div style="position:relative;display:inline-block;margin:10px 0;">
+        <svg width="150" height="150" style="transform:rotate(-90deg)">
+          <circle cx="75" cy="75" r="60" fill="none" stroke="var(--border)" stroke-width="12"/>
+          <circle id="healthGauge" cx="75" cy="75" r="60" fill="none" stroke="url(#hg)" stroke-width="12"
+            stroke-linecap="round" stroke-dasharray="376.99" stroke-dashoffset="56.5"
+            style="transition:stroke-dashoffset 1.2s ease;"/>
+          <defs><linearGradient id="hg" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#10b981"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs>
+        </svg>
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">
+          <div style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--text-primary)" id="healthScore">87</div>
+          <div style="font-size:11px;color:var(--text-muted)">/ 100</div>
+        </div>
+      </div>
+      <div class="badge-pill badge-success" style="font-size:13px;" id="healthStatus">Kondisi Baik</div>
+      <div style="margin-top:20px;font-size:12px;color:var(--text-muted);">Estimasi servis berikutnya:</div>
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--text-primary);margin-top:4px;" id="nextService">~45 jam lagi</div>
+    </div>
+  </div>
+  <!-- Component Health -->
+  <div class="card">
+    <div class="card-header"><div class="card-title"><i class="bi bi-cpu"></i> Status Komponen</div></div>
+    <div class="card-body">
+      <div id="componentList" style="display:flex;flex-direction:column;gap:14px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Alerts -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-title"><i class="bi bi-bell-fill"></i> Smart Alert Center</div>
+    <span class="badge-pill badge-warning" id="alertCount">3 Aktif</span>
+  </div>
+  <div class="card-body">
+    <div id="alertList" style="display:flex;flex-direction:column;gap:10px;"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const alerts = [
+  {type:'warning',icon:'bi-battery-half',title:'Baterai Memerlukan Perhatian',desc:'Health score baterai di 78%. Pertimbangkan penggantian dalam 10 jam ke depan.',time:'Hari ini'},
+  {type:'info',icon:'bi-arrow-repeat',title:'Jadwal Servis Motor',desc:'Motor kanan dan kiri mencapai 45 jam operasi. Periksa grease dan bearing.',time:'3 hari lagi'},
+  {type:'success',icon:'bi-check-circle-fill',title:'Kalibrasi GPS Berhasil',desc:'GPS UBlox NEO-6M berhasil dikalibrasi. HDOP optimal: 1.2',time:'2 jam lalu'},
+];
+
+function renderAlerts() {
+  const colors = {warning:'var(--warning)',info:'var(--info)',success:'var(--success)',danger:'var(--danger)'};
+  const bg = {warning:'rgba(245,158,11,.08)',info:'rgba(139,92,246,.08)',success:'rgba(16,185,129,.08)',danger:'rgba(239,68,68,.08)'};
+  document.getElementById('alertList').innerHTML = alerts.map(a=>`
+    <div style="display:flex;align-items:flex-start;gap:14px;padding:14px;background:${bg[a.type]};border:1px solid ${colors[a.type]}22;border-radius:10px;border-left:3px solid ${colors[a.type]};">
+      <i class="bi ${a.icon}" style="font-size:18px;color:${colors[a.type]};margin-top:1px;flex-shrink:0;"></i>
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:13.5px;color:var(--text-primary);margin-bottom:3px;">${a.title}</div>
+        <div style="font-size:12px;color:var(--text-secondary);line-height:1.5;">${a.desc}</div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);white-space:nowrap;">${a.time}</div>
+    </div>`).join('');
+}
+
+function renderComponents(components) {
+  document.getElementById('componentList').innerHTML = components.map(c=>{
+    const color = c.health>85?'var(--success)':c.health>70?'var(--warning)':'var(--danger)';
+    const badge = c.health>85?'badge-success':c.health>70?'badge-warning':'badge-danger';
+    const w = c.health + '%';
+    return `<div>
+      <div class="flex justify-between items-center mb-4" style="font-size:13px;">
+        <span style="color:var(--text-primary);font-weight:600;">${c.name}</span>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="badge-pill ${badge}" style="font-size:11px;">${c.health}%</span>
+          <span style="font-size:11px;color:var(--text-muted);">${c.next_service}</span>
+        </div>
+      </div>
+      <div class="progress-bar-wrap"><div style="height:6px;border-radius:3px;background:${color};width:${w};transition:width .8s ease;"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function fetchMaintenance() {
+  fetch('/api/maintenance/health').then(r=>r.json()).then(d=>{
+    const circ = 376.99;
+    const offset = circ - (circ * d.overall / 100);
+    document.getElementById('healthGauge').setAttribute('stroke-dashoffset', offset);
+    document.getElementById('healthScore').textContent = Math.round(d.overall);
+    const status = d.overall>85?'Kondisi Baik':d.overall>70?'Perlu Perhatian':'Servis Segera';
+    const badge = d.overall>85?'badge-success':d.overall>70?'badge-warning':'badge-danger';
+    const el = document.getElementById('healthStatus');
+    el.textContent = status; el.className = 'badge-pill '+badge;
+    renderComponents(d.components);
+  });
+}
+
+renderAlerts();
+fetchMaintenance();
+setInterval(fetchMaintenance, 5000);
+</script>
+{% endblock %}

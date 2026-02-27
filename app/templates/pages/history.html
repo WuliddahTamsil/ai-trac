@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block title %}Riwayat{% endblock %}
+{% block page_title %}Riwayat Operasi{% endblock %}
+
+{% block content %}
+<div class="page-heading fade-up">
+  <h1>Riwayat Misi & Operasi</h1>
+  <p>Semua riwayat operasi traktor dengan detail lengkap</p>
+</div>
+
+<!-- SEARCH + FILTER BAR -->
+<div class="card fade-up delay-1" style="margin-bottom:16px">
+  <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+    <div class="search-input-wrap" style="flex:1;min-width:200px">
+      <span class="icon">🔍</span>
+      <input type="text" class="form-input" id="searchInput" placeholder="Cari operasi, area, mode..." oninput="filterTable()">
+    </div>
+    <select class="form-input" id="statusFilter" style="width:150px" onchange="filterTable()">
+      <option value="">Semua Status</option>
+      <option value="Selesai">Selesai</option>
+      <option value="Terhenti">Terhenti</option>
+    </select>
+    <select class="form-input" id="modeFilter" style="width:150px" onchange="filterTable()">
+      <option value="">Semua Mode</option>
+      <option value="Auto">Auto</option>
+      <option value="Manual">Manual</option>
+      <option value="Line Following">Line Following</option>
+    </select>
+    <button class="btn btn-primary btn-sm" onclick="exportCSV()">⬇️ Export CSV</button>
+  </div>
+</div>
+
+<!-- TABLE -->
+<div class="card fade-up delay-2">
+  <div class="card-header">
+    <div class="card-title">📋 Daftar Operasi</div>
+    <span id="rowCount" class="badge badge-info">-- entri</span>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="data-table" id="historyTable">
+      <thead>
+        <tr>
+          <th onclick="sortTable('id')">ID ↕</th>
+          <th onclick="sortTable('date')">Tanggal ↕</th>
+          <th onclick="sortTable('area')">Area ↕</th>
+          <th onclick="sortTable('duration')">Durasi ↕</th>
+          <th onclick="sortTable('coverage')">Cakupan (Ha) ↕</th>
+          <th onclick="sortTable('mode')">Mode ↕</th>
+          <th onclick="sortTable('quality_score')">Kualitas ↕</th>
+          <th onclick="sortTable('status')">Status ↕</th>
+        </tr>
+      </thead>
+      <tbody id="historyBody">
+        <tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:30px">Memuat data...</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="pagination" id="pagination"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let allData = [];
+let filtered = [];
+let currentPage = 1;
+const perPage = 8;
+let sortCol = 'id';
+let sortDir = 1;
+
+async function loadHistory() {
+  try {
+    const res = await fetch('/api/history');
+    allData = await res.json();
+    filtered = [...allData];
+    renderTable();
+  } catch(e) {}
+}
+
+function filterTable() {
+  const search = el('searchInput').value.toLowerCase();
+  const status = el('statusFilter').value;
+  const mode = el('modeFilter').value;
+
+  filtered = allData.filter(row => {
+    const matchSearch = !search || Object.values(row).some(v => String(v).toLowerCase().includes(search));
+    const matchStatus = !status || row.status === status;
+    const matchMode = !mode || row.mode === mode;
+    return matchSearch && matchStatus && matchMode;
+  });
+
+  currentPage = 1;
+  renderTable();
+}
+
+function sortTable(col) {
+  if (sortCol === col) sortDir *= -1;
+  else { sortCol = col; sortDir = 1; }
+  filtered.sort((a, b) => {
+    const av = a[col]; const bv = b[col];
+    if (typeof av === 'number') return (av - bv) * sortDir;
+    return String(av).localeCompare(String(bv)) * sortDir;
+  });
+  renderTable();
+}
+
+function renderTable() {
+  const start = (currentPage - 1) * perPage;
+  const page = filtered.slice(start, start + perPage);
+  el('rowCount').textContent = filtered.length + ' entri';
+
+  const statusColors = { 'Selesai': 'badge-success', 'Terhenti': 'badge-danger' };
+  const modeColors = { 'Auto': 'badge-success', 'Manual': 'badge-info', 'Line Following': 'badge-warning' };
+
+  el('historyBody').innerHTML = page.map(row => `
+    <tr>
+      <td style="font-weight:600;color:var(--blue)">${row.id}</td>
+      <td style="font-size:12px">${row.date}</td>
+      <td><span class="badge badge-muted">${row.area}</span></td>
+      <td>${row.duration}</td>
+      <td style="font-weight:600">${row.coverage} Ha</td>
+      <td><span class="badge ${modeColors[row.mode] || 'badge-muted'}">${row.mode}</span></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="progress-track" style="width:50px">
+            <div class="progress-fill ${row.quality_score >= 80 ? 'green' : row.quality_score >= 60 ? 'amber' : 'red'}" style="width:${row.quality_score}%"></div>
+          </div>
+          <span>${row.quality_score}%</span>
+        </div>
+      </td>
+      <td><span class="badge ${statusColors[row.status] || 'badge-muted'}">${row.status}</span></td>
+    </tr>
+  `).join('') || '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:20px">Tidak ada data</td></tr>';
+
+  renderPagination();
+}
+
+function renderPagination() {
+  const total = Math.ceil(filtered.length / perPage);
+  const pag = el('pagination');
+  if (total <= 1) { pag.innerHTML = ''; return; }
+
+  let html = '';
+  html += `<button class="page-btn" onclick="goPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled style="opacity:0.4"' : ''}>‹</button>`;
+  for (let i = 1; i <= total; i++) {
+    html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
+  }
+  html += `<button class="page-btn" onclick="goPage(${currentPage + 1})" ${currentPage === total ? 'disabled style="opacity:0.4"' : ''}>›</button>`;
+  pag.innerHTML = html;
+}
+
+function goPage(p) {
+  const max = Math.ceil(filtered.length / perPage);
+  if (p < 1 || p > max) return;
+  currentPage = p;
+  renderTable();
+}
+
+function exportCSV() {
+  const headers = ['ID', 'Tanggal', 'Area', 'Durasi', 'Cakupan (Ha)', 'Mode', 'Kualitas', 'Status'];
+  const rows = filtered.map(r => [r.id, r.date, r.area, r.duration, r.coverage, r.mode, r.quality_score, r.status]);
+  const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'ai-trac-history.csv';
+  a.click();
+}
+
+document.addEventListener('DOMContentLoaded', loadHistory);
+</script>
+{% endblock %}

@@ -1,0 +1,683 @@
+{% extends "base/layout.html" %}
+{% set active = "dashboard" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}<i class="bi bi-grid-1x2-fill" style="color:var(--primary)"></i> Dashboard{% endblock %}
+
+{% block content %}
+<!-- STAT CARDS ROW - Fully responsive grid -->
+<div class="stats-grid mb-6">
+  <div class="stat-card" style="--stat-color:var(--primary)">
+    <div class="stat-icon" style="background:rgba(59,130,246,.1);color:var(--primary)"><i class="bi bi-battery-charging"></i></div>
+    <div class="stat-label">Baterai</div>
+    <div class="stat-value"><span id="sc-bat">87</span><span class="stat-unit">%</span></div>
+    <span class="stat-delta up"><i class="bi bi-arrow-up-short"></i> Stabil</span>
+  </div>
+  <div class="stat-card" style="--stat-color:var(--success)">
+    <div class="stat-icon" style="background:rgba(16,185,129,.1);color:var(--success)"><i class="bi bi-speedometer2"></i></div>
+    <div class="stat-label">Kecepatan</div>
+    <div class="stat-value"><span id="sc-speed">2.3</span><span class="stat-unit"> m/s</span></div>
+    <span class="stat-delta up"><i class="bi bi-arrow-up-short"></i> Normal</span>
+  </div>
+  <div class="stat-card" style="--stat-color:var(--warning)">
+    <div class="stat-icon" style="background:rgba(245,158,11,.1);color:var(--warning)"><i class="bi bi-thermometer-half"></i></div>
+    <div class="stat-label">Suhu ESP32</div>
+    <div class="stat-value"><span id="sc-temp">43</span><span class="stat-unit"> °C</span></div>
+    <span class="stat-delta neutral"><i class="bi bi-dash"></i> Normal</span>
+  </div>
+  <div class="stat-card" style="--stat-color:var(--accent)">
+    <div class="stat-icon" style="background:rgba(6,182,212,.1);color:var(--accent)"><i class="bi bi-map-fill"></i></div>
+    <div class="stat-label">Area Dicakup</div>
+    <div class="stat-value"><span id="sc-area">1420</span><span class="stat-unit"> m²</span></div>
+    <span class="stat-delta up"><i class="bi bi-arrow-up-short"></i> +120 m² hari ini</span>
+  </div>
+</div>
+
+<!-- ROW 2: Battery Chart + Mode Status - Responsive grid with stacking -->
+<div class="dashboard-grid-2 mb-6">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><i class="bi bi-bar-chart-line-fill"></i> Baterai — 10 Menit Terakhir</div>
+      <span class="badge-pill badge-primary mono" id="batLive">--</span>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:200px; width:100%;">
+        <canvas id="chartBattery"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><i class="bi bi-cpu-fill"></i> Status Sistem</div>
+    </div>
+    <div class="card-body">
+      <div class="status-list">
+        <div class="status-item">
+          <div class="flex justify-between">
+            <span style="color:var(--text-muted)">Mode Aktif</span>
+            <span class="badge-pill badge-success" id="modeLabel">AUTO</span>
+          </div>
+        </div>
+        <div class="status-item">
+          <div class="flex justify-between">
+            <span style="color:var(--text-muted)">Koneksi ESP32</span>
+            <span class="badge-pill badge-success"><i class="bi bi-circle-fill" style="font-size:7px"></i> Online</span>
+          </div>
+        </div>
+        <div class="status-item">
+          <div class="flex justify-between">
+            <span style="color:var(--text-muted)">GPS Signal</span>
+            <span class="mono" id="gpsSats">-- SAT</span>
+          </div>
+          <div class="progress-bar-wrap mt-1"><div class="progress-bar-fill" id="gpsBar" style="width:80%"></div></div>
+        </div>
+        <div class="status-item">
+          <div class="flex justify-between">
+            <span style="color:var(--text-muted)">Sensor Depan</span>
+            <span class="mono" id="distFront">-- cm</span>
+          </div>
+        </div>
+        <div class="status-item">
+          <div class="flex justify-between">
+            <span style="color:var(--text-muted)">Sensor Kiri</span>
+            <span class="mono" id="distLeft">-- cm</span>
+          </div>
+        </div>
+        <div class="status-item">
+          <div class="flex justify-between">
+            <span style="color:var(--text-muted)">Sensor Kanan</span>
+            <span class="mono" id="distRight">-- cm</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ROW 3: GPS + Soil Quality + Telemetry - Responsive grid -->
+<div class="dashboard-grid-3 mb-6">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><i class="bi bi-geo-alt-fill"></i> GPS Posisi</div>
+    </div>
+    <div class="card-body">
+      <div class="gps-coord-box">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">KOORDINAT</div>
+        <div class="mono coord-text" id="gpsCoords">-6.5971, 106.8060</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Bogor, Jawa Barat</div>
+      </div>
+      <div class="gps-metrics">
+        <div class="gps-metric-item">
+          <div style="font-size:10px;color:var(--text-muted)">ALTITUDE</div>
+          <div class="mono metric-value" style="color:var(--text-primary)" id="gpsAlt">190 m</div>
+        </div>
+        <div class="gps-metric-item">
+          <div style="font-size:10px;color:var(--text-muted)">HDOP</div>
+          <div class="mono metric-value" style="color:var(--success)" id="gpsHdop">1.2</div>
+        </div>
+        <div class="gps-metric-item">
+          <div style="font-size:10px;color:var(--text-muted)">HEADING</div>
+          <div class="mono metric-value" style="color:var(--accent)" id="gpsHeading">0°</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><i class="bi bi-layers-fill"></i> Kualitas Tanah</div>
+    </div>
+    <div class="card-body" style="text-align:center;">
+      <div class="soil-gauge-container">
+        <svg width="120" height="120" style="transform:rotate(-90deg)" class="gauge-svg">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" stroke-width="10"/>
+          <circle id="soilGauge" cx="60" cy="60" r="50" fill="none" stroke="url(#grad)" stroke-width="10"
+            stroke-linecap="round" stroke-dasharray="314.15" stroke-dashoffset="78.5"
+            style="transition:stroke-dashoffset 1s ease;"/>
+          <defs>
+            <linearGradient id="grad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#06b6d4"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="gauge-text">
+          <div class="gauge-value" id="soilScore">75</div>
+          <div style="font-size:10px;color:var(--text-muted)">%</div>
+        </div>
+      </div>
+      <div class="badge-pill badge-success" id="soilLabel" style="margin:14px 0;">Optimal</div>
+      <div class="soil-stats">
+        <div class="flex justify-between">
+          <span>Confidence</span><span class="mono" id="mlConf">93.2%</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Total Deteksi</span><span class="mono" id="mlCount">1,452</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><i class="bi bi-activity"></i> Live Telemetry</div>
+      <div class="spinner" style="width:14px;height:14px;"></div>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:160px; width:100%;">
+        <canvas id="chartSpeed"></canvas>
+      </div>
+      <div class="telemetry-badges">
+        <div class="badge-pill badge-primary"><i class="bi bi-lightning-charge-fill" style="font-size:9px"></i> <span id="tBat">--</span>%</div>
+        <div class="badge-pill badge-info"><i class="bi bi-thermometer-half" style="font-size:9px"></i> <span id="tTemp">--</span>°C</div>
+        <div class="badge-pill badge-success"><i class="bi bi-speedometer" style="font-size:9px"></i> <span id="tSpeed">--</span> m/s</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ===== RESPONSIVE DASHBOARD STYLES ===== */
+/* Base flex utilities */
+.flex { display: flex; }
+.justify-between { justify-content: space-between; }
+.mb-6 { margin-bottom: 24px; }
+.mt-1 { margin-top: 4px; }
+.mono { font-family: 'DM Mono', monospace; }
+
+/* Stats grid - responsive card layout */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .stats-grid {
+    gap: 20px;
+  }
+}
+
+.stat-card {
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px 12px;
+  transition: 0.2s;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .stat-card {
+    padding: 20px 16px;
+  }
+}
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+
+@media (min-width: 768px) {
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+@media (min-width: 768px) {
+  .stat-value {
+    font-size: 24px;
+  }
+}
+
+.stat-unit {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+  margin-left: 2px;
+}
+
+.stat-delta {
+  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 20px;
+  background: rgba(0,0,0,0.02);
+}
+
+.stat-delta.up { color: var(--success); }
+.stat-delta.neutral { color: var(--muted); }
+
+/* Dashboard grid 2 columns */
+.dashboard-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .dashboard-grid-2 {
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dashboard-grid-2 {
+    gap: 24px;
+  }
+}
+
+/* Dashboard grid 3 columns */
+.dashboard-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .dashboard-grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .dashboard-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+}
+
+/* Card styles */
+.card {
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  height: fit-content;
+  width: 100%;
+}
+
+.card-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (min-width: 768px) {
+  .card-header {
+    padding: 18px 20px;
+  }
+}
+
+.card-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (min-width: 768px) {
+  .card-title {
+    font-size: 15px;
+  }
+}
+
+.card-body {
+  padding: 16px;
+}
+
+@media (min-width: 768px) {
+  .card-body {
+    padding: 20px;
+  }
+}
+
+/* Status list */
+.status-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.status-item {
+  width: 100%;
+}
+
+/* GPS components */
+.gps-coord-box {
+  background: linear-gradient(135deg,rgba(59,130,246,.08),rgba(6,182,212,.06));
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  margin-bottom: 16px;
+  word-break: break-word;
+}
+
+.coord-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+@media (min-width: 768px) {
+  .coord-text {
+    font-size: 15px;
+  }
+}
+
+.gps-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.gps-metric-item {
+  text-align: center;
+  padding: 10px 4px;
+  background: var(--bg);
+  border-radius: 8px;
+  min-width: 0; /* Prevent overflow */
+}
+
+.metric-value {
+  font-weight: 700;
+  font-size: 14px;
+  word-break: break-word;
+}
+
+@media (min-width: 768px) {
+  .metric-value {
+    font-size: 15px;
+  }
+}
+
+/* Soil gauge */
+.soil-gauge-container {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 14px;
+}
+
+.gauge-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.gauge-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+@media (min-width: 768px) {
+  .gauge-value {
+    font-size: 24px;
+  }
+}
+
+/* Soil stats */
+.soil-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  width: 100%;
+}
+
+/* Telemetry badges */
+.telemetry-badges {
+  margin-top: 16px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .telemetry-badges {
+    justify-content: flex-start;
+  }
+}
+
+/* Badge pills */
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 30px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-primary { background: rgba(59,130,246,.1); color: var(--primary); }
+.badge-success { background: rgba(16,185,129,.1); color: var(--success); }
+.badge-warning { background: rgba(245,158,11,.1); color: var(--warning); }
+.badge-danger { background: rgba(239,68,68,.1); color: #ef4444; }
+.badge-info { background: rgba(6,182,212,.1); color: var(--accent); }
+
+/* Progress bar */
+.progress-bar-wrap {
+  width: 100%;
+  height: 6px;
+  background: var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+/* Chart container */
+.chart-container {
+  width: 100%;
+  position: relative;
+}
+
+/* Fix canvas responsiveness */
+canvas {
+  max-width: 100%;
+  height: auto !important;
+  width: 100% !important;
+}
+
+/* Spinner */
+.spinner {
+  border: 2px solid rgba(59,130,246,.2);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Battery Chart
+const batCtx = document.getElementById('chartBattery').getContext('2d');
+const batData = Array.from({length:20}, () => ({x: Date.now() - (19-0)*30000, y: 85}));
+let batLabels = Array.from({length:20}, (_,i) => {
+  const d = new Date(Date.now() - (19-i)*30000);
+  return d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+});
+let batVals = Array.from({length:20}, () => 75 + Math.random()*15);
+
+const chartBat = new Chart(batCtx, {
+  type:'line',
+  data:{
+    labels: batLabels,
+    datasets:[{
+      data: batVals,
+      borderColor:'#3b82f6',
+      backgroundColor:'rgba(59,130,246,.08)',
+      fill:true,
+      tension:0.4,
+      pointRadius:0,
+      borderWidth:2
+    }]
+  },
+  options:{
+    responsive:true, 
+    maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{grid:{color:'rgba(100,116,139,.1)'},ticks:{color:'#94a3b8',font:{size:10},maxTicksLimit:6}},
+      y:{grid:{color:'rgba(100,116,139,.1)'},ticks:{color:'#94a3b8',font:{size:10}},min:60,max:100}
+    }
+  }
+});
+
+// Speed Chart
+const spdCtx = document.getElementById('chartSpeed').getContext('2d');
+let spdVals = Array.from({length:20}, () => 1.5 + Math.random()*2);
+const chartSpd = new Chart(spdCtx, {
+  type:'line',
+  data:{
+    labels: Array.from({length:20},(_,i)=>i+'s'),
+    datasets:[{
+      data: spdVals,
+      borderColor:'#10b981',
+      backgroundColor:'rgba(16,185,129,.08)',
+      fill:true, tension:0.4, pointRadius:0, borderWidth:2
+    }]
+  },
+  options:{
+    responsive:true, 
+    maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{display:false},
+      y:{grid:{color:'rgba(100,116,139,.1)'},ticks:{color:'#94a3b8',font:{size:10}},min:0,max:5}
+    }
+  }
+});
+
+// Soil gauge update
+function updateSoilGauge(score) {
+  const circ = 314.15;
+  const offset = circ - (circ * score / 100);
+  document.getElementById('soilGauge').setAttribute('stroke-dashoffset', offset);
+  document.getElementById('soilScore').textContent = score;
+}
+
+// Fetch telemetry and update UI
+function fetchTelemetry() {
+  fetch('/api/telemetry')
+    .then(r=>r.json())
+    .then(d => {
+      document.getElementById('sc-bat').textContent = d.battery;
+      document.getElementById('sc-speed').textContent = d.speed;
+      document.getElementById('sc-temp').textContent = d.temperature;
+      document.getElementById('sc-area').textContent = Math.round(d.area_covered);
+      document.getElementById('modeLabel').textContent = d.mode;
+      document.getElementById('gpsSats').textContent = d.satellites + ' SAT';
+      document.getElementById('distFront').textContent = d.front_dist + ' cm';
+      document.getElementById('distLeft').textContent = d.left_dist + ' cm';
+      document.getElementById('distRight').textContent = d.right_dist + ' cm';
+      document.getElementById('gpsCoords').textContent = d.latitude.toFixed(4) + ', ' + d.longitude.toFixed(4);
+      document.getElementById('gpsAlt').textContent = d.altitude + ' m';
+      document.getElementById('gpsHdop').textContent = d.hdop;
+      document.getElementById('gpsHeading').textContent = Math.round(d.heading) + '°';
+      document.getElementById('tBat').textContent = d.battery;
+      document.getElementById('tTemp').textContent = d.temperature;
+      document.getElementById('tSpeed').textContent = d.speed;
+      document.getElementById('batLive').textContent = d.battery + '%';
+
+      const gpsBar = d.satellites / 12 * 100;
+      document.getElementById('gpsBar').style.width = Math.min(gpsBar, 100) + '%';
+
+      // Update charts
+      const timeLabel = new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+      chartBat.data.labels.push(timeLabel); chartBat.data.labels.shift();
+      chartBat.data.datasets[0].data.push(d.battery); chartBat.data.datasets[0].data.shift();
+      chartBat.update('none');
+
+      chartSpd.data.datasets[0].data.push(d.speed); chartSpd.data.datasets[0].data.shift();
+      chartSpd.update('none');
+    })
+    .catch(err => console.warn('Telemetry fetch failed, using mock'));
+
+  fetch('/api/ml/detection')
+    .then(r=>r.json())
+    .then(d => {
+      const q = d.quality_score;
+      updateSoilGauge(Math.round(q));
+      document.getElementById('soilLabel').textContent = d.label;
+      document.getElementById('mlConf').textContent = (d.confidence*100).toFixed(1)+'%';
+      document.getElementById('mlCount').textContent = d.total_detections.toLocaleString();
+
+      const lbl = document.getElementById('soilLabel');
+      lbl.className = 'badge-pill';
+      if(q > 80) lbl.classList.add('badge-success');
+      else if(q > 60) lbl.classList.add('badge-warning');
+      else lbl.classList.add('badge-danger');
+    })
+    .catch(() => {
+      // Mock data for demo
+      const mockQ = 65 + Math.floor(Math.random()*30);
+      updateSoilGauge(mockQ);
+      document.getElementById('soilLabel').textContent = mockQ > 80 ? 'Optimal' : (mockQ > 60 ? 'Cukup' : 'Butuh Perhatian');
+      document.getElementById('mlConf').textContent = (85 + Math.random()*10).toFixed(1)+'%';
+      document.getElementById('mlCount').textContent = (1200 + Math.floor(Math.random()*500)).toLocaleString();
+      
+      const lbl = document.getElementById('soilLabel');
+      lbl.className = 'badge-pill';
+      if(mockQ > 80) lbl.classList.add('badge-success');
+      else if(mockQ > 60) lbl.classList.add('badge-warning');
+      else lbl.classList.add('badge-danger');
+    });
+}
+
+fetchTelemetry();
+setInterval(fetchTelemetry, 3000);
+</script>
+{% endblock %}

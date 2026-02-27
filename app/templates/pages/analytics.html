@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+{% block title %}Analitik{% endblock %}
+{% block page_title %}Advanced Analytics{% endblock %}
+
+{% block content %}
+<div class="page-heading fade-up">
+  <h1>Advanced Analytics</h1>
+  <p>Grafik operasional dinamis — diperbarui setiap 3 detik</p>
+</div>
+
+<!-- TOP METRICS -->
+<div class="grid-4 fade-up delay-1" style="margin-bottom:20px">
+  <div class="stat-card blue">
+    <div class="stat-icon blue">📐</div>
+    <div>
+      <div class="stat-value" id="an-area">2.4</div>
+      <div class="stat-label">Area Tercakup (Ha)</div>
+    </div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-icon green">⏱️</div>
+    <div>
+      <div class="stat-value" id="an-dur">6.5</div>
+      <div class="stat-label">Total Jam Operasi</div>
+    </div>
+  </div>
+  <div class="stat-card amber">
+    <div class="stat-icon amber">⚡</div>
+    <div>
+      <div class="stat-value" id="an-eff">87</div>
+      <div class="stat-label">Efisiensi Bahan Bakar %</div>
+    </div>
+  </div>
+  <div class="stat-card teal">
+    <div class="stat-icon teal">🌱</div>
+    <div>
+      <div class="stat-value" id="an-qual">82</div>
+      <div class="stat-label">Rata2 Kualitas Lahan %</div>
+    </div>
+  </div>
+</div>
+
+<!-- CHARTS ROW 1 -->
+<div class="grid-2 fade-up delay-2" style="margin-bottom:20px">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🔋 Baterai vs Waktu</div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span class="badge badge-info">Auto-update</span>
+      </div>
+    </div>
+    <div class="chart-container" style="height:220px">
+      <canvas id="batteryChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📐 Cakupan Area (Ha)</div>
+      <span class="badge badge-success">Kumulatif</span>
+    </div>
+    <div class="chart-container" style="height:220px">
+      <canvas id="areaChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- CHARTS ROW 2 -->
+<div class="grid-2 fade-up delay-3" style="margin-bottom:20px">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🌱 Kualitas Tanah Overtime</div>
+      <span class="badge badge-warning">Sensor Fusion</span>
+    </div>
+    <div class="chart-container" style="height:220px">
+      <canvas id="soilChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">⏱️ Durasi Operasi Per Hari</div>
+      <span class="badge badge-info">10 hari terakhir</span>
+    </div>
+    <div class="chart-container" style="height:220px">
+      <canvas id="durationChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- TELEMETRY CHART -->
+<div class="card fade-up" style="margin-bottom:20px">
+  <div class="card-header">
+    <div class="card-title">📡 Multi-Sensor Telemetri Live</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div style="width:10px;height:10px;border-radius:50%;background:var(--blue)"></div><span style="font-size:11px">Kecepatan</span>
+      <div style="width:10px;height:10px;border-radius:50%;background:var(--warning)"></div><span style="font-size:11px">Suhu</span>
+      <div style="width:10px;height:10px;border-radius:50%;background:var(--success)"></div><span style="font-size:11px">Kelembaban</span>
+    </div>
+  </div>
+  <div class="chart-container" style="height:240px">
+    <canvas id="multiChart"></canvas>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let charts = {};
+let multiData = { labels: [], speed: [], temp: [], hum: [] };
+
+function buildMultiChart() {
+  const ctx = document.getElementById('multiChart').getContext('2d');
+  charts.multi = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        { label: 'Kecepatan', data: [], borderColor: 'rgb(26,108,246)', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4, pointRadius: 0 },
+        { label: 'Suhu', data: [], borderColor: 'rgb(245,158,11)', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4, pointRadius: 0 },
+        { label: 'Kelembaban', data: [], borderColor: 'rgb(16,185,129)', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4, pointRadius: 0 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, position: 'bottom', labels: { color: '#8fa5c0', font: { family: 'DM Sans', size: 11 }, boxWidth: 10 } },
+        tooltip: { backgroundColor: 'rgba(10,22,40,0.9)', bodyFont: { family: 'DM Sans' }, padding: 8 }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(143,165,192,0.1)' }, ticks: { color: '#8fa5c0', font: { size: 11 }, maxTicksLimit: 8 } },
+        y: { grid: { color: 'rgba(143,165,192,0.1)' }, ticks: { color: '#8fa5c0', font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+async function initCharts() {
+  const [bData, aData, sData, dData] = await Promise.all([
+    fetch('/api/charts/battery').then(r => r.json()),
+    fetch('/api/charts/area').then(r => r.json()),
+    fetch('/api/charts/soil').then(r => r.json()),
+    fetch('/api/charts/duration').then(r => r.json()),
+  ]);
+
+  charts.battery = createLineChart(
+    document.getElementById('batteryChart').getContext('2d'),
+    bData.map(d => d.time), bData.map(d => d.value), 'rgb(26,108,246)'
+  );
+  charts.area = createLineChart(
+    document.getElementById('areaChart').getContext('2d'),
+    aData.map(d => d.time), aData.map(d => d.value), 'rgb(16,185,129)'
+  );
+  charts.soil = createLineChart(
+    document.getElementById('soilChart').getContext('2d'),
+    sData.map(d => d.time), sData.map(d => d.value), 'rgb(245,158,11)'
+  );
+  charts.duration = createBarChart(
+    document.getElementById('durationChart').getContext('2d'),
+    dData.map(d => d.date), dData.map(d => d.hours), 'rgb(8,145,178)'
+  );
+
+  buildMultiChart();
+
+  // Update stats
+  el('an-area').textContent = (aData[aData.length - 1]?.value || 0).toFixed(2);
+}
+
+function pushToMulti(data) {
+  const MAX = 30;
+  multiData.labels.push(data.timestamp);
+  multiData.speed.push(data.speed);
+  multiData.temp.push(data.temperature);
+  multiData.hum.push(data.humidity);
+  if (multiData.labels.length > MAX) {
+    multiData.labels.shift(); multiData.speed.shift();
+    multiData.temp.shift(); multiData.hum.shift();
+  }
+  charts.multi.data.labels = [...multiData.labels];
+  charts.multi.data.datasets[0].data = [...multiData.speed];
+  charts.multi.data.datasets[1].data = [...multiData.temp];
+  charts.multi.data.datasets[2].data = [...multiData.hum];
+  charts.multi.update('none');
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await initCharts();
+
+  let areaVal = parseFloat(el('an-area').textContent);
+  let durVal = 6.5;
+
+  const poller = new TelemetryPoller(3000);
+  poller.onData(data => {
+    // Update battery chart
+    if (charts.battery) {
+      charts.battery.data.labels.push(data.timestamp);
+      charts.battery.data.datasets[0].data.push(data.battery);
+      if (charts.battery.data.labels.length > 25) {
+        charts.battery.data.labels.shift();
+        charts.battery.data.datasets[0].data.shift();
+      }
+      charts.battery.update('none');
+    }
+    // Update soil chart
+    if (charts.soil) {
+      const q = 70 + Math.random() * 25;
+      charts.soil.data.labels.push(data.timestamp);
+      charts.soil.data.datasets[0].data.push(q.toFixed(1));
+      if (charts.soil.data.labels.length > 25) {
+        charts.soil.data.labels.shift();
+        charts.soil.data.datasets[0].data.shift();
+      }
+      charts.soil.update('none');
+      el('an-qual').textContent = q.toFixed(0);
+    }
+    pushToMulti(data);
+
+    // Update area
+    areaVal += 0.001;
+    el('an-area').textContent = areaVal.toFixed(2);
+    durVal += 0.001;
+    el('an-dur').textContent = durVal.toFixed(1);
+  });
+  poller.start();
+});
+</script>
+{% endblock %}

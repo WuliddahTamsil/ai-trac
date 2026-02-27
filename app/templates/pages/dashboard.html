@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard Utama{% endblock %}
+
+{% block content %}
+<div class="page-heading fade-up">
+  <h1>Executive Overview</h1>
+  <p>Ringkasan status operasional AI-TRAC secara real-time</p>
+</div>
+
+<!-- STAT CARDS -->
+<div class="grid-4 fade-up delay-1" style="margin-bottom:20px">
+  <div class="stat-card blue">
+    <div class="stat-icon blue">🔋</div>
+    <div>
+      <div class="stat-value" id="stat-battery">--</div>
+      <div class="stat-label" data-i18n="battery">Baterai %</div>
+    </div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-icon green">⚡</div>
+    <div>
+      <div class="stat-value" id="stat-speed">--</div>
+      <div class="stat-label" data-i18n="speed">Kecepatan km/h</div>
+    </div>
+  </div>
+  <div class="stat-card amber">
+    <div class="stat-icon amber">🌡️</div>
+    <div>
+      <div class="stat-value" id="stat-temp">--</div>
+      <div class="stat-label" data-i18n="temperature">Suhu °C</div>
+    </div>
+  </div>
+  <div class="stat-card teal">
+    <div class="stat-icon teal">🛰️</div>
+    <div>
+      <div class="stat-value" id="stat-sats">--</div>
+      <div class="stat-label" data-i18n="satellites">Satelit GPS</div>
+    </div>
+  </div>
+</div>
+
+<div class="grid-4 fade-up delay-2" style="margin-bottom:24px">
+  <div class="stat-card navy">
+    <div class="stat-icon navy">💪</div>
+    <div>
+      <div class="stat-value" id="stat-health">--</div>
+      <div class="stat-label" data-i18n="health">Kesehatan %</div>
+    </div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-icon green">🌾</div>
+    <div>
+      <div class="stat-value" id="stat-quality">--</div>
+      <div class="stat-label">Kualitas Tanah</div>
+    </div>
+  </div>
+  <div class="stat-card blue">
+    <div class="stat-icon blue">🎮</div>
+    <div>
+      <div class="stat-value" id="stat-mode" style="font-size:18px">--</div>
+      <div class="stat-label" data-i18n="mode">Mode Aktif</div>
+    </div>
+  </div>
+  <div class="stat-card amber">
+    <div class="stat-icon amber">🕐</div>
+    <div>
+      <div class="stat-value" id="stat-time" style="font-size:18px">--</div>
+      <div class="stat-label">Update Terakhir</div>
+    </div>
+  </div>
+</div>
+
+<!-- CHARTS ROW -->
+<div class="grid-2 fade-up delay-3" style="margin-bottom:20px">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📈 Baterai vs Waktu</div>
+      <span class="badge badge-info">Live</span>
+    </div>
+    <div class="chart-container" style="height:200px">
+      <canvas id="batteryChart"></canvas>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🌱 Kualitas Tanah</div>
+      <span class="badge badge-success">Realtime</span>
+    </div>
+    <div class="chart-container" style="height:200px">
+      <canvas id="soilChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- TELEMETRY + MAP ROW -->
+<div class="grid-2 fade-up delay-4" style="margin-bottom:20px">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📡 Sensor Realtime</div>
+    </div>
+    <div id="sensorRows">
+      <div class="sensor-row">
+        <div class="sensor-label">Depan (US)</div>
+        <div class="progress-track" style="flex:1"><div class="progress-fill blue" id="p-front" style="width:50%"></div></div>
+        <div class="sensor-value" id="v-front">-- cm</div>
+      </div>
+      <div class="sensor-row">
+        <div class="sensor-label">Kiri (US)</div>
+        <div class="progress-track" style="flex:1"><div class="progress-fill teal" id="p-left" style="width:50%"></div></div>
+        <div class="sensor-value" id="v-left">-- cm</div>
+      </div>
+      <div class="sensor-row">
+        <div class="sensor-label">Kanan (US)</div>
+        <div class="progress-track" style="flex:1"><div class="progress-fill teal" id="p-right" style="width:50%"></div></div>
+        <div class="sensor-value" id="v-right">-- cm</div>
+      </div>
+      <div class="sensor-row">
+        <div class="sensor-label">Motor Kiri</div>
+        <div class="progress-track" style="flex:1"><div class="progress-fill blue" id="p-ml" style="width:50%"></div></div>
+        <div class="sensor-value" id="v-ml">-- %</div>
+      </div>
+      <div class="sensor-row">
+        <div class="sensor-label">Motor Kanan</div>
+        <div class="progress-track" style="flex:1"><div class="progress-fill blue" id="p-mr" style="width:50%"></div></div>
+        <div class="sensor-value" id="v-mr">-- %</div>
+      </div>
+      <div class="sensor-row">
+        <div class="sensor-label">Kelembaban</div>
+        <div class="progress-track" style="flex:1"><div class="progress-fill green" id="p-hum" style="width:65%"></div></div>
+        <div class="sensor-value" id="v-hum">-- %</div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🗺️ Posisi GPS</div>
+      <span class="badge badge-success" id="gps-status-badge">Valid</span>
+    </div>
+    <div class="gps-map">
+      <div class="gps-grid"></div>
+      <div class="gps-label">GPS LIVE</div>
+      <div class="gps-dot" id="gpsDot"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">
+      <div style="background:var(--surface);border-radius:10px;padding:10px">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">LATITUDE</div>
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700" id="gps-lat">--</div>
+      </div>
+      <div style="background:var(--surface);border-radius:10px;padding:10px">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">LONGITUDE</div>
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700" id="gps-lng">--</div>
+      </div>
+      <div style="background:var(--surface);border-radius:10px;padding:10px">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">HEADING</div>
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700" id="gps-heading">--°</div>
+      </div>
+      <div style="background:var(--surface);border-radius:10px;padding:10px">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">ALTITUDE</div>
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700" id="gps-alt">-- m</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QUICK LINKS -->
+<div class="grid-3 fade-up" style="margin-bottom:0">
+  <a href="/control" style="text-decoration:none" class="card" style="display:block">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:44px;height:44px;background:linear-gradient(135deg,rgba(26,108,246,0.12),rgba(26,108,246,0.06));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px">🎮</div>
+      <div>
+        <div style="font-weight:700;font-size:14px">Panel Kontrol</div>
+        <div style="font-size:12px;color:var(--text-muted)">Kendalikan traktor sekarang</div>
+      </div>
+      <span style="margin-left:auto;color:var(--text-muted)">→</span>
+    </div>
+  </a>
+  <a href="/ml-monitor" style="text-decoration:none" class="card">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:44px;height:44px;background:linear-gradient(135deg,rgba(16,185,129,0.12),rgba(16,185,129,0.06));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px">🧠</div>
+      <div>
+        <div style="font-weight:700;font-size:14px">Monitor ML</div>
+        <div style="font-size:12px;color:var(--text-muted)">Deteksi kondisi tanah</div>
+      </div>
+      <span style="margin-left:auto;color:var(--text-muted)">→</span>
+    </div>
+  </a>
+  <a href="/analytics" style="text-decoration:none" class="card">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:44px;height:44px;background:linear-gradient(135deg,rgba(245,158,11,0.12),rgba(245,158,11,0.06));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px">📈</div>
+      <div>
+        <div style="font-weight:700;font-size:14px">Analitik</div>
+        <div style="font-size:12px;color:var(--text-muted)">Grafik & statistik operasi</div>
+      </div>
+      <span style="margin-left:auto;color:var(--text-muted)">→</span>
+    </div>
+  </a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let batteryChart, soilChart;
+let batteryData = { labels: [], values: [] };
+let soilData = { labels: [], values: [] };
+
+async function initCharts() {
+  const bRes = await fetch('/api/charts/battery');
+  const bData = await bRes.json();
+  batteryData.labels = bData.map(d => d.time);
+  batteryData.values = bData.map(d => d.value);
+
+  const sRes = await fetch('/api/charts/soil');
+  const sData = await sRes.json();
+  soilData.labels = sData.map(d => d.time);
+  soilData.values = sData.map(d => d.value);
+
+  batteryChart = createLineChart(
+    document.getElementById('batteryChart').getContext('2d'),
+    batteryData.labels, batteryData.values, 'rgb(26,108,246)'
+  );
+  soilChart = createLineChart(
+    document.getElementById('soilChart').getContext('2d'),
+    soilData.labels, soilData.values, 'rgb(16,185,129)'
+  );
+}
+
+function updateSummary(data) {
+  el('stat-battery').textContent = data.battery + '%';
+  el('stat-speed').textContent = data.speed + ' km/h';
+  el('stat-temp').textContent = data.temperature + '°C';
+  el('stat-sats').textContent = data.satellites;
+  el('stat-health').textContent = data.health + '%';
+  el('stat-quality').textContent = data.quality_score + '%';
+  el('stat-mode').textContent = data.mode?.toUpperCase();
+  el('stat-time').textContent = data.timestamp;
+}
+
+function updateTelemetry(data) {
+  const pct = (val, max) => Math.min(100, (val / max) * 100) + '%';
+  el('p-front').style.width = pct(data.distance_front, 200);
+  el('v-front').textContent = data.distance_front + ' cm';
+  el('p-left').style.width = pct(data.distance_left, 150);
+  el('v-left').textContent = data.distance_left + ' cm';
+  el('p-right').style.width = pct(data.distance_right, 150);
+  el('v-right').textContent = data.distance_right + ' cm';
+  el('p-ml').style.width = data.motor_left + '%';
+  el('v-ml').textContent = data.motor_left.toFixed(0) + '%';
+  el('p-mr').style.width = data.motor_right + '%';
+  el('v-mr').textContent = data.motor_right.toFixed(0) + '%';
+  el('p-hum').style.width = data.humidity + '%';
+  el('v-hum').textContent = data.humidity.toFixed(1) + '%';
+  el('gps-lat').textContent = data.latitude;
+  el('gps-lng').textContent = data.longitude;
+  el('gps-heading').textContent = data.heading + '°';
+  el('gps-alt').textContent = data.altitude + ' m';
+
+  // Move GPS dot based on position
+  const dot = el('gpsDot');
+  if (dot) {
+    const map = dot.parentElement;
+    const xPct = ((data.longitude - 106.805) * 1000 * 50 + 50);
+    const yPct = ((-data.latitude - 6.596) * 1000 * 50 + 50);
+    dot.style.position = 'absolute';
+    dot.style.left = Math.max(5, Math.min(95, xPct)) + '%';
+    dot.style.top = Math.max(5, Math.min(95, yPct)) + '%';
+    dot.style.transform = 'translate(-50%, -50%)';
+  }
+}
+
+function pushChartData(chart, dataStore, newLabel, newVal, maxPoints = 20) {
+  dataStore.labels.push(newLabel);
+  dataStore.values.push(newVal);
+  if (dataStore.labels.length > maxPoints) {
+    dataStore.labels.shift(); dataStore.values.shift();
+  }
+  chart.data.labels = [...dataStore.labels];
+  chart.data.datasets[0].data = [...dataStore.values];
+  chart.update('none');
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await initCharts();
+
+  const summaryPoller = new DashboardPoller(3000);
+  summaryPoller.onData(updateSummary).start();
+
+  const telemPoller = new TelemetryPoller(2000);
+  telemPoller.onData(updateTelemetry);
+  telemPoller.onData(data => {
+    if (batteryChart) pushChartData(batteryChart, batteryData, data.timestamp, data.battery);
+  });
+  telemPoller.start();
+});
+</script>
+{% endblock %}

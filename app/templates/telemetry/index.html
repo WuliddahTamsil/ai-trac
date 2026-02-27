@@ -1,0 +1,231 @@
+{% extends "base/layout.html" %}
+{% set active = "telemetry" %}
+{% block title %}Telemetry{% endblock %}
+{% block page_title %}<i class="bi bi-broadcast" style="color:var(--primary)"></i> Telemetry Monitoring{% endblock %}
+{% block content %}
+<div class="grid-4 mb-6">
+  <div class="stat-card" style="--stat-color:var(--primary)">
+    <div class="stat-icon" style="background:rgba(59,130,246,.1);color:var(--primary)"><i class="bi bi-geo-alt-fill"></i></div>
+    <div class="stat-label">Latitude</div>
+    <div class="stat-value mono" style="font-size:18px" id="tLat">-6.5971</div>
+  </div>
+  <div class="stat-card" style="--stat-color:var(--accent)">
+    <div class="stat-icon" style="background:rgba(6,182,212,.1);color:var(--accent)"><i class="bi bi-geo-fill"></i></div>
+    <div class="stat-label">Longitude</div>
+    <div class="stat-value mono" style="font-size:18px" id="tLon">106.8060</div>
+  </div>
+  <div class="stat-card" style="--stat-color:var(--success)">
+    <div class="stat-icon" style="background:rgba(16,185,129,.1);color:var(--success)"><i class="bi bi-reception-4"></i></div>
+    <div class="stat-label">Satelit GPS</div>
+    <div class="stat-value"><span id="tSat">10</span><span class="stat-unit"> sat</span></div>
+  </div>
+  <div class="stat-card" style="--stat-color:var(--warning)">
+    <div class="stat-icon" style="background:rgba(245,158,11,.1);color:var(--warning)"><i class="bi bi-arrow-up-right-circle-fill"></i></div>
+    <div class="stat-label">Altitude</div>
+    <div class="stat-value"><span id="tAlt">190</span><span class="stat-unit"> m</span></div>
+  </div>
+</div>
+
+<div class="grid-2 mb-6">
+  <!-- Map Placeholder -->
+  <div class="card">
+    <div class="card-header"><div class="card-title"><i class="bi bi-pin-map-fill"></i> GPS Track Simulasi</div></div>
+    <div class="card-body" style="padding:12px;">
+      <div style="background:var(--bg);border-radius:10px;height:280px;position:relative;overflow:hidden;">
+        <canvas id="gpsCanvas" style="width:100%;height:100%;"></canvas>
+        <div style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,.5);color:#fff;font-size:10px;font-family:'DM Mono',monospace;padding:4px 8px;border-radius:5px;">SIM MODE</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sensor Grid -->
+  <div style="display:flex;flex-direction:column;gap:20px;">
+    <div class="card">
+      <div class="card-header"><div class="card-title"><i class="bi bi-radar"></i> Sensor Jarak (cm)</div></div>
+      <div class="card-body">
+        <div class="chart-container" style="height:140px;"><canvas id="chartDist"></canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title"><i class="bi bi-info-circle-fill"></i> Sensor Status</div></div>
+      <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div style="padding:10px;background:var(--bg);border-radius:8px;text-align:center;">
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">US DEPAN</div>
+          <div class="mono" style="font-weight:700;color:var(--primary)" id="ssFront">-- cm</div>
+          <span class="badge-pill badge-success" style="font-size:9px;">OK</span>
+        </div>
+        <div style="padding:10px;background:var(--bg);border-radius:8px;text-align:center;">
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">US KIRI</div>
+          <div class="mono" style="font-weight:700;color:var(--accent)" id="ssLeft">-- cm</div>
+          <span class="badge-pill badge-success" style="font-size:9px;">OK</span>
+        </div>
+        <div style="padding:10px;background:var(--bg);border-radius:8px;text-align:center;">
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">US KANAN</div>
+          <div class="mono" style="font-weight:700;color:var(--success)" id="ssRight">-- cm</div>
+          <span class="badge-pill badge-success" style="font-size:9px;">OK</span>
+        </div>
+        <div style="padding:10px;background:var(--bg);border-radius:8px;text-align:center;">
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">GPS PPS</div>
+          <div class="mono" style="font-weight:700;color:var(--success)">SYNC</div>
+          <span class="badge-pill badge-success" style="font-size:9px;">OK</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Motor & Power Row -->
+<div class="grid-3">
+  <div class="card">
+    <div class="card-header"><div class="card-title"><i class="bi bi-battery-full"></i> Power Status</div></div>
+    <div class="card-body">
+      <div style="text-align:center;margin-bottom:16px;">
+        <div style="font-size:48px;color:var(--primary)" id="bigBat">87%</div>
+        <div style="font-size:11px;color:var(--text-muted)">Kapasitas Baterai</div>
+      </div>
+      <div class="progress-bar-wrap" style="height:10px;"><div class="progress-bar-fill" id="batBarBig" style="width:87%"></div></div>
+      <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px;">
+        <div class="flex justify-between" style="font-size:12px;"><span style="color:var(--text-muted)">Tegangan</span><span class="mono">11.8 V</span></div>
+        <div class="flex justify-between" style="font-size:12px;"><span style="color:var(--text-muted)">Arus</span><span class="mono" id="tCurr">2.3 A</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title"><i class="bi bi-thermometer-high"></i> Suhu &amp; Motor</div></div>
+    <div class="card-body">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="flex justify-between items-center">
+          <span style="font-size:12.5px;color:var(--text-muted)">Suhu ESP32</span>
+          <span class="mono" style="font-weight:700;" id="bigTemp">43°C</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span style="font-size:12.5px;color:var(--text-muted)">Motor Kanan</span>
+          <span class="badge-pill badge-success">Running</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span style="font-size:12.5px;color:var(--text-muted)">Motor Kiri</span>
+          <span class="badge-pill badge-success">Running</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span style="font-size:12.5px;color:var(--text-muted)">PWM Kanan</span>
+          <span class="mono" id="pwmR">128/255</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span style="font-size:12.5px;color:var(--text-muted)">PWM Kiri</span>
+          <span class="mono" id="pwmL">128/255</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span style="font-size:12.5px;color:var(--text-muted)">iBUS Signal</span>
+          <span class="badge-pill badge-warning">Standby</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title"><i class="bi bi-compass-fill"></i> Heading &amp; Speed</div></div>
+    <div class="card-body" style="text-align:center;">
+      <canvas id="compassCanvas" width="130" height="130" style="display:block;margin:0 auto 14px;"></canvas>
+      <div style="font-size:11px;color:var(--text-muted)">Heading</div>
+      <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;" id="bigHead">0°</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">Kecepatan</div>
+      <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--primary)" id="bigSpeed">-- m/s</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Distance chart
+const dCtx = document.getElementById('chartDist').getContext('2d');
+let dFront=[],dLeft=[],dRight=[];
+for(let i=0;i<15;i++){dFront.push(40+Math.random()*100);dLeft.push(30+Math.random()*80);dRight.push(30+Math.random()*80);}
+const chartDist = new Chart(dCtx,{
+  type:'line',data:{labels:Array.from({length:15},(_,i)=>i+'s'),datasets:[
+    {label:'Depan',data:dFront,borderColor:'#3b82f6',fill:false,tension:.4,pointRadius:0,borderWidth:2},
+    {label:'Kiri',data:dLeft,borderColor:'#10b981',fill:false,tension:.4,pointRadius:0,borderWidth:2},
+    {label:'Kanan',data:dRight,borderColor:'#f59e0b',fill:false,tension:.4,pointRadius:0,borderWidth:2}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#94a3b8',font:{size:10},boxWidth:10}}},scales:{x:{display:false},y:{grid:{color:'rgba(100,116,139,.1)'},ticks:{color:'#94a3b8',font:{size:10}}}}}
+});
+
+// Compass
+function drawCompass(heading) {
+  const c = document.getElementById('compassCanvas');
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0,0,130,130);
+  ctx.beginPath(); ctx.arc(65,65,60,0,Math.PI*2);
+  ctx.strokeStyle='rgba(100,116,139,.2)'; ctx.lineWidth=2; ctx.stroke();
+  // N S W E
+  ctx.fillStyle='#94a3b8'; ctx.font='bold 12px Syne,sans-serif'; ctx.textAlign='center';
+  ctx.fillText('N',65,16); ctx.fillText('S',65,118); ctx.fillText('E',116,69); ctx.fillText('W',14,69);
+  // Arrow
+  const rad = (heading - 90) * Math.PI/180;
+  ctx.save(); ctx.translate(65,65); ctx.rotate(rad);
+  ctx.fillStyle='#3b82f6';
+  ctx.beginPath(); ctx.moveTo(0,-40); ctx.lineTo(6,10); ctx.lineTo(0,4); ctx.lineTo(-6,10); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+// GPS Track
+const gc = document.getElementById('gpsCanvas');
+gc.width = gc.offsetWidth || 400; gc.height = gc.offsetHeight || 280;
+const gctx = gc.getContext('2d');
+let gpsTrack = [];
+function drawTrack(lat, lon) {
+  if(!gpsTrack.length) {gpsTrack.push({lat,lon});}
+  gpsTrack.push({lat,lon});
+  if(gpsTrack.length > 100) gpsTrack.shift();
+  const w=gc.width, h=gc.height;
+  gctx.clearRect(0,0,w,h);
+  gctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()||'#f0f4f8';
+  gctx.fillRect(0,0,w,h);
+  if(gpsTrack.length < 2) return;
+  const lats = gpsTrack.map(p=>p.lat), lons = gpsTrack.map(p=>p.lon);
+  const minLat=Math.min(...lats), maxLat=Math.max(...lats), minLon=Math.min(...lons), maxLon=Math.max(...lons);
+  const pad=30;
+  function toXY(p) {
+    const latR = maxLat-minLat || .001, lonR = maxLon-minLon || .001;
+    return { x: pad + (p.lon-minLon)/lonR*(w-pad*2), y: pad + (maxLat-p.lat)/latR*(h-pad*2) };
+  }
+  gctx.beginPath();
+  gctx.strokeStyle='rgba(59,130,246,.4)'; gctx.lineWidth=1;
+  gpsTrack.forEach((p,i)=>{const xy=toXY(p); i===0?gctx.moveTo(xy.x,xy.y):gctx.lineTo(xy.x,xy.y);});
+  gctx.stroke();
+  gctx.beginPath();
+  gctx.strokeStyle='#3b82f6'; gctx.lineWidth=2;
+  gpsTrack.slice(-20).forEach((p,i)=>{const xy=toXY(p); i===0?gctx.moveTo(xy.x,xy.y):gctx.lineTo(xy.x,xy.y);});
+  gctx.stroke();
+  const last=toXY(gpsTrack[gpsTrack.length-1]);
+  gctx.fillStyle='#ef4444'; gctx.beginPath(); gctx.arc(last.x,last.y,5,0,Math.PI*2); gctx.fill();
+}
+
+function fetchTelemetry() {
+  fetch('/api/telemetry').then(r=>r.json()).then(d=>{
+    document.getElementById('tLat').textContent = d.latitude.toFixed(5);
+    document.getElementById('tLon').textContent = d.longitude.toFixed(5);
+    document.getElementById('tSat').textContent = d.satellites;
+    document.getElementById('tAlt').textContent = d.altitude;
+    document.getElementById('ssFront').textContent = d.front_dist + ' cm';
+    document.getElementById('ssLeft').textContent = d.left_dist + ' cm';
+    document.getElementById('ssRight').textContent = d.right_dist + ' cm';
+    document.getElementById('bigBat').textContent = d.battery + '%';
+    document.getElementById('batBarBig').style.width = d.battery + '%';
+    document.getElementById('bigTemp').textContent = d.temperature + '°C';
+    document.getElementById('bigHead').textContent = Math.round(d.heading) + '°';
+    document.getElementById('bigSpeed').textContent = d.speed + ' m/s';
+    document.getElementById('tCurr').textContent = (d.speed * 1.2).toFixed(1) + ' A';
+    document.getElementById('pwmR').textContent = Math.round(d.speed/4*255)+'/255';
+    document.getElementById('pwmL').textContent = Math.round(d.speed/4*255)+'/255';
+    drawCompass(d.heading);
+    drawTrack(d.latitude, d.longitude);
+    chartDist.data.datasets[0].data.push(d.front_dist); chartDist.data.datasets[0].data.shift();
+    chartDist.data.datasets[1].data.push(d.left_dist); chartDist.data.datasets[1].data.shift();
+    chartDist.data.datasets[2].data.push(d.right_dist); chartDist.data.datasets[2].data.shift();
+    chartDist.update('none');
+  });
+}
+fetchTelemetry();
+setInterval(fetchTelemetry, 1200);
+</script>
+{% endblock %}

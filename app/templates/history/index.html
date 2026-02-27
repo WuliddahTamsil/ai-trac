@@ -1,0 +1,125 @@
+{% extends "base/layout.html" %}
+{% set active = "history" %}
+{% block title %}Riwayat Misi{% endblock %}
+{% block page_title %}<i class="bi bi-clock-history" style="color:var(--primary)"></i> Riwayat Misi{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div class="card-title"><i class="bi bi-table"></i> Log Operasi Traktor</div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <input type="text" class="search-input" id="searchInput" placeholder="Cari misi..." style="max-width:200px;" oninput="filterTable()">
+      <select class="search-input" id="statusFilter" onchange="filterTable()" style="max-width:150px;">
+        <option value="">Semua Status</option>
+        <option>Selesai</option>
+        <option>Dibatalkan</option>
+      </select>
+      <button class="btn btn-outline btn-sm" onclick="exportCSV()"><i class="bi bi-download"></i> Export</button>
+    </div>
+  </div>
+  <div class="overflow-auto">
+    <table class="data-table" id="missionTable">
+      <thead>
+        <tr>
+          <th onclick="sortTable('id')">ID <i class="bi bi-arrow-down-up" style="font-size:9px"></i></th>
+          <th onclick="sortTable('date')">Tanggal <i class="bi bi-arrow-down-up" style="font-size:9px"></i></th>
+          <th onclick="sortTable('area')">Area</th>
+          <th onclick="sortTable('mode')">Mode</th>
+          <th onclick="sortTable('duration')">Durasi</th>
+          <th onclick="sortTable('coverage')">Coverage</th>
+          <th onclick="sortTable('avg_speed')">Avg Speed</th>
+          <th onclick="sortTable('status')">Status</th>
+        </tr>
+      </thead>
+      <tbody id="missionBody">
+        <tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted);"><div class="spinner"></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="pagination" id="pagination"></div>
+  <div style="padding:12px 20px;font-size:12px;color:var(--text-muted);border-top:1px solid var(--border-light);">
+    Menampilkan <span id="showCount">--</span> dari <span id="totalCount">--</span> misi
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let allData = [], filtered = [], page = 1, perPage = 10, sortKey = 'id', sortAsc = false;
+
+const modeColors = {AUTO:'badge-success', MANUAL:'badge-primary', LINE:'badge-info'};
+const statusColors = {Selesai:'badge-success', Dibatalkan:'badge-danger'};
+
+function render() {
+  const start = (page-1)*perPage, end = start+perPage;
+  const rows = filtered.slice(start, end);
+  const tbody = document.getElementById('missionBody');
+  if(!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted);">Tidak ada data</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r=>`<tr>
+    <td class="mono" style="font-weight:600;color:var(--primary);">${r.id}</td>
+    <td class="mono">${r.date}</td>
+    <td>${r.area}</td>
+    <td><span class="badge-pill ${modeColors[r.mode]||'badge-muted'}">${r.mode}</span></td>
+    <td class="mono">${r.duration}</td>
+    <td class="mono">${r.coverage}</td>
+    <td class="mono">${r.avg_speed}</td>
+    <td><span class="badge-pill ${statusColors[r.status]||'badge-muted'}">${r.status}</span></td>
+  </tr>`).join('');
+  document.getElementById('showCount').textContent = Math.min(end, filtered.length);
+  document.getElementById('totalCount').textContent = filtered.length;
+  renderPagination();
+}
+
+function renderPagination() {
+  const pages = Math.ceil(filtered.length/perPage);
+  let html = '';
+  if(page>1) html+=`<button class="page-btn" onclick="goPage(${page-1})"><i class="bi bi-chevron-left"></i></button>`;
+  for(let i=1;i<=pages;i++) {
+    if(i===1||i===pages||Math.abs(i-page)<=1) html+=`<button class="page-btn ${i===page?'active':''}" onclick="goPage(${i})">${i}</button>`;
+    else if(Math.abs(i-page)===2) html+='<span style="padding:0 4px;color:var(--text-muted)">…</span>';
+  }
+  if(page<pages) html+=`<button class="page-btn" onclick="goPage(${page+1})"><i class="bi bi-chevron-right"></i></button>`;
+  document.getElementById('pagination').innerHTML = html;
+}
+
+function goPage(p) { page=p; render(); }
+
+function filterTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const s = document.getElementById('statusFilter').value;
+  filtered = allData.filter(r => {
+    const matches = Object.values(r).join(' ').toLowerCase().includes(q);
+    const statusOk = !s || r.status === s;
+    return matches && statusOk;
+  });
+  page = 1; render();
+}
+
+function sortTable(key) {
+  if(sortKey===key) sortAsc=!sortAsc; else { sortKey=key; sortAsc=true; }
+  filtered.sort((a,b)=>{
+    const av=a[key]||'', bv=b[key]||'';
+    return sortAsc ? (av>bv?1:-1) : (av<bv?1:-1);
+  });
+  render();
+}
+
+function exportCSV() {
+  const headers = ['ID','Tanggal','Area','Mode','Durasi','Coverage','Avg Speed','Status'];
+  const rows = filtered.map(r=>[r.id,r.date,r.area,r.mode,r.duration,r.coverage,r.avg_speed,r.status]);
+  const csv = [headers, ...rows].map(r=>r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'ai-trac-missions.csv';
+  a.click();
+}
+
+fetch('/api/history').then(r=>r.json()).then(data=>{
+  allData = data; filtered = [...data];
+  document.getElementById('totalCount').textContent = data.length;
+  render();
+});
+</script>
+{% endblock %}

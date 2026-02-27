@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% block title %}ML Monitor{% endblock %}
+{% block page_title %}Machine Learning Monitor{% endblock %}
+
+{% block content %}
+<div class="page-heading fade-up">
+  <h1>Monitor Machine Learning</h1>
+  <p>Deteksi kondisi tanah real-time menggunakan model computer vision</p>
+</div>
+
+<div class="grid-2-1" style="margin-bottom:20px">
+  <!-- VIDEO AREA -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div class="card fade-up">
+      <div class="card-header">
+        <div class="card-title">📹 Video Stream (Live)</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="badge badge-danger" id="streamStatus">● REC</span>
+          <span style="font-size:11px;color:var(--text-muted)" id="streamFps">-- FPS</span>
+        </div>
+      </div>
+      <div class="video-area" id="videoArea">
+        <div class="video-overlay">
+          <div class="video-corner tl"></div>
+          <div class="video-corner tr"></div>
+          <div class="video-corner bl"></div>
+          <div class="video-corner br"></div>
+          <!-- BOUNDING BOX -->
+          <div id="boundingBox" style="position:absolute;border:2.5px solid #00ff88;border-radius:4px;transition:all 0.5s ease;box-shadow:0 0 10px rgba(0,255,136,0.3)"></div>
+          <!-- Label on bbox -->
+          <div id="bboxLabel" style="position:absolute;background:rgba(0,255,136,0.85);color:#000;font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;transition:all 0.5s ease"></div>
+        </div>
+        <div class="video-placeholder">
+          <div class="icon">🎥</div>
+          <div>Camera Stream</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.25)">Placeholder — connect camera module</div>
+          <div style="margin-top:8px">
+            <span style="color:rgba(255,255,255,0.4);font-size:11px">Model: YOLOv8-Soil · </span>
+            <span style="color:#00ff88;font-size:11px" id="modelStatus">● ACTIVE</span>
+          </div>
+        </div>
+      </div>
+      <!-- Scan line animation -->
+      <div id="scanLine" style="position:relative;height:2px;overflow:hidden;margin-top:8px;border-radius:1px;background:var(--border)">
+        <div style="position:absolute;top:0;height:100%;width:40%;background:linear-gradient(90deg,transparent,var(--cyan),transparent);animation:scanMove 2s linear infinite"></div>
+      </div>
+      <style>@keyframes scanMove { from{left:-40%} to{left:100%} }</style>
+    </div>
+
+    <!-- DETECTION HISTORY CHART -->
+    <div class="card fade-up delay-1">
+      <div class="card-header">
+        <div class="card-title">📈 Kualitas Deteksi — Tren</div>
+        <span class="badge badge-info">Realtime</span>
+      </div>
+      <div class="chart-container" style="height:180px">
+        <canvas id="detectionChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: DETECTION PANEL -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+
+    <!-- CURRENT DETECTION -->
+    <div class="card fade-up">
+      <div class="card-header">
+        <div class="card-title">🔍 Deteksi Aktif</div>
+        <span class="badge badge-success" id="detectBadge">Live</span>
+      </div>
+      <div style="text-align:center;padding:16px 0">
+        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text-primary)" id="detLabel">--</div>
+        <div style="font-size:12px;color:var(--text-muted);margin:4px 0 16px">Kondisi Tanah Terdeteksi</div>
+
+        <div style="position:relative;height:80px;display:flex;align-items:center;justify-content:center">
+          <!-- Confidence circle -->
+          <svg width="80" height="80" style="position:absolute">
+            <circle cx="40" cy="40" r="32" fill="none" stroke="var(--border)" stroke-width="6"/>
+            <circle id="confCircle" cx="40" cy="40" r="32" fill="none" stroke="var(--blue)" stroke-width="6"
+              stroke-dasharray="201" stroke-dashoffset="201" stroke-linecap="round"
+              style="transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset 0.8s ease"/>
+          </svg>
+          <div>
+            <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--blue)" id="confValue">--%</div>
+            <div style="font-size:9px;color:var(--text-muted);text-align:center">CONFIDENCE</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px;background:var(--surface);border-radius:8px">
+          <span style="font-size:12px;color:var(--text-muted)">Kualitas Bajakan</span>
+          <span style="font-size:13px;font-weight:700;color:var(--text-primary)" id="qualScore">--</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px;background:var(--surface);border-radius:8px">
+          <span style="font-size:12px;color:var(--text-muted)">Grade</span>
+          <span class="badge badge-success" id="qualGrade">--</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px;background:var(--surface);border-radius:8px">
+          <span style="font-size:12px;color:var(--text-muted)">Obj. Terdeteksi</span>
+          <span style="font-size:13px;font-weight:700;color:var(--text-primary)" id="detCount">--</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px;background:var(--surface);border-radius:8px">
+          <span style="font-size:12px;color:var(--text-muted)">Timestamp</span>
+          <span style="font-size:12px;color:var(--text-muted)" id="detTime">--</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="card fade-up delay-1">
+      <div class="card-title" style="margin-bottom:12px">📊 Statistik Sesi</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="background:linear-gradient(135deg,rgba(26,108,246,0.08),rgba(26,108,246,0.04));border:1px solid rgba(26,108,246,0.15);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--blue)" id="totalDet">0</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px">TOTAL DETEKSI</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(16,185,129,0.08),rgba(16,185,129,0.04));border:1px solid rgba(16,185,129,0.15);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--success)" id="avgQual">--</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px">RATA2 KUALITAS</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(245,158,11,0.08),rgba(245,158,11,0.04));border:1px solid rgba(245,158,11,0.15);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--warning)" id="avgConf">--</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px">AVG CONFIDENCE</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(8,145,178,0.08),rgba(8,145,178,0.04));border:1px solid rgba(8,145,178,0.15);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--teal)" id="fps">--</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px">INF. / MENIT</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONDITION LEGEND -->
+    <div class="card fade-up delay-2">
+      <div class="card-title" style="margin-bottom:12px">🗺️ Legenda Kondisi</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;background:var(--surface)">
+          <div style="width:10px;height:10px;border-radius:50%;background:#10b981"></div>
+          <span style="font-size:12px">Tanah Ideal</span>
+          <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Optimal untuk bajak</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;background:var(--surface)">
+          <div style="width:10px;height:10px;border-radius:50%;background:#f59e0b"></div>
+          <span style="font-size:12px">Tanah Kering</span>
+          <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Butuh irigasi</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;background:var(--surface)">
+          <div style="width:10px;height:10px;border-radius:50%;background:#3b82f6"></div>
+          <span style="font-size:12px">Tanah Basah</span>
+          <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Tunggu kering</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;background:var(--surface)">
+          <div style="width:10px;height:10px;border-radius:50%;background:#ef4444"></div>
+          <span style="font-size:12px">Bebatuan</span>
+          <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Hindari area</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let detChart;
+let totalDetections = 0;
+let confSum = 0;
+let qualSum = 0;
+let detectionHistory = { labels: [], values: [] };
+
+function initDetectionChart() {
+  const ctx = document.getElementById('detectionChart').getContext('2d');
+  detChart = createLineChart(ctx, [], [], 'rgb(0,200,224)', true);
+}
+
+function updateDetection(data) {
+  totalDetections++;
+  confSum += data.confidence;
+  qualSum += data.quality_score;
+
+  el('detLabel').textContent = data.condition;
+  el('confValue').textContent = (data.confidence * 100).toFixed(1) + '%';
+  el('qualScore').textContent = data.quality_score + '%';
+  el('detCount').textContent = data.detections_count;
+  el('detTime').textContent = data.timestamp;
+  el('streamFps').textContent = '~25 FPS';
+
+  const gradeColors = { Excellent: 'badge-success', Good: 'badge-info', Fair: 'badge-warning', Poor: 'badge-danger' };
+  const grade = el('qualGrade');
+  grade.textContent = data.quality;
+  grade.className = 'badge ' + (gradeColors[data.quality] || 'badge-muted');
+
+  // Update confidence circle
+  const pct = data.confidence;
+  const offset = 201 * (1 - pct);
+  el('confCircle').style.strokeDashoffset = offset;
+  const colors = { high: 'var(--success)', mid: 'var(--warning)', low: 'var(--danger)' };
+  const c = pct > 0.8 ? 'high' : pct > 0.6 ? 'mid' : 'low';
+  el('confCircle').style.stroke = colors[c];
+
+  // Update stats
+  el('totalDet').textContent = totalDetections;
+  el('avgQual').textContent = (qualSum / totalDetections).toFixed(1) + '%';
+  el('avgConf').textContent = ((confSum / totalDetections) * 100).toFixed(1) + '%';
+  el('fps').textContent = Math.round(totalDetections * 0.8);
+
+  // Update bounding box
+  const bb = data.bbox;
+  const videoArea = el('videoArea');
+  const vW = videoArea.offsetWidth;
+  const vH = videoArea.offsetHeight;
+  const scaleX = vW / 640;
+  const scaleY = vH / 480;
+  const box = el('boundingBox');
+  const lbl = el('bboxLabel');
+  box.style.left = (bb.x * scaleX) + 'px';
+  box.style.top = (bb.y * scaleY) + 'px';
+  box.style.width = (bb.w * scaleX) + 'px';
+  box.style.height = (bb.h * scaleY) + 'px';
+  lbl.style.left = (bb.x * scaleX) + 'px';
+  lbl.style.top = (bb.y * scaleY - 20) + 'px';
+  lbl.textContent = data.condition + ' ' + (data.confidence * 100).toFixed(0) + '%';
+
+  // Update chart
+  detectionHistory.labels.push(data.timestamp);
+  detectionHistory.values.push(data.quality_score);
+  if (detectionHistory.labels.length > 25) {
+    detectionHistory.labels.shift(); detectionHistory.values.shift();
+  }
+  detChart.data.labels = [...detectionHistory.labels];
+  detChart.data.datasets[0].data = [...detectionHistory.values];
+  detChart.update('none');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initDetectionChart();
+
+  const poll = async () => {
+    try {
+      const res = await fetch('/api/ml/detection');
+      const data = await res.json();
+      updateDetection(data);
+    } catch (e) {}
+  };
+
+  poll();
+  setInterval(poll, 1500);
+});
+</script>
+{% endblock %}

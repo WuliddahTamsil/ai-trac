@@ -1,0 +1,149 @@
+{% extends "base/layout.html" %}
+{% set active = "analytics" %}
+{% block title %}Analytics{% endblock %}
+{% block page_title %}<i class="bi bi-graph-up-arrow" style="color:var(--primary)"></i> Advanced Analytics{% endblock %}
+{% block content %}
+<!-- Summary Cards -->
+<div class="grid-4 mb-6">
+  <div class="stat-card" style="--stat-color:var(--primary)">
+    <div class="stat-icon" style="background:rgba(59,130,246,.1);color:var(--primary)"><i class="bi bi-map-fill"></i></div>
+    <div class="stat-label">Total Area</div>
+    <div class="stat-value"><span id="aTotal">8,742</span><span class="stat-unit"> m²</span></div>
+  </div>
+  <div class="stat-card" style="--stat-color:var(--success)">
+    <div class="stat-icon" style="background:rgba(16,185,129,.1);color:var(--success)"><i class="bi bi-clock-fill"></i></div>
+    <div class="stat-label">Total Jam Operasi</div>
+    <div class="stat-value"><span id="aHours">46.3</span><span class="stat-unit"> h</span></div>
+  </div>
+  <div class="stat-card" style="--stat-color:var(--accent)">
+    <div class="stat-icon" style="background:rgba(6,182,212,.1);color:var(--accent)"><i class="bi bi-speedometer2"></i></div>
+    <div class="stat-label">Kecepatan Rata-rata</div>
+    <div class="stat-value"><span id="aSpeed">2.1</span><span class="stat-unit"> m/s</span></div>
+  </div>
+  <div class="stat-card" style="--stat-color:var(--warning)">
+    <div class="stat-icon" style="background:rgba(245,158,11,.1);color:var(--warning)"><i class="bi bi-stars"></i></div>
+    <div class="stat-label">Efisiensi Operasi</div>
+    <div class="stat-value"><span id="aEff">91</span><span class="stat-unit">%</span></div>
+  </div>
+</div>
+
+<!-- Charts Row 1 -->
+<div class="grid-2 mb-6">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><i class="bi bi-battery-half"></i> Tren Baterai (24 Jam)</div>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:220px;"><canvas id="chartBat24"></canvas></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><i class="bi bi-map"></i> Area Coverage Harian</div>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:220px;"><canvas id="chartArea"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Row 2 -->
+<div class="grid-2 mb-6">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><i class="bi bi-layers-fill"></i> Distribusi Kualitas Tanah</div>
+    </div>
+    <div class="card-body" style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+      <div class="chart-container" style="height:200px;width:200px;flex-shrink:0;"><canvas id="chartSoilPie"></canvas></div>
+      <div style="flex:1;min-width:120px;display:flex;flex-direction:column;gap:8px;">
+        <div class="flex justify-between" style="font-size:12.5px;">
+          <span style="color:var(--success)"><i class="bi bi-circle-fill" style="font-size:8px"></i> Optimal</span><span class="mono">45%</span>
+        </div>
+        <div class="flex justify-between" style="font-size:12.5px;">
+          <span style="color:var(--primary)"><i class="bi bi-circle-fill" style="font-size:8px"></i> Good</span><span class="mono">30%</span>
+        </div>
+        <div class="flex justify-between" style="font-size:12.5px;">
+          <span style="color:var(--warning)"><i class="bi bi-circle-fill" style="font-size:8px"></i> Fair</span><span class="mono">15%</span>
+        </div>
+        <div class="flex justify-between" style="font-size:12.5px;">
+          <span style="color:var(--danger)"><i class="bi bi-circle-fill" style="font-size:8px"></i> Poor</span><span class="mono">10%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><i class="bi bi-speedometer"></i> Sensor Telemetry Live</div>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:200px;"><canvas id="chartTelemetry"></canvas></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function mkChart(id, type, labels, datasets, opts={}) {
+  const ctx = document.getElementById(id).getContext('2d');
+  return new Chart(ctx, {
+    type, data:{labels, datasets},
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'rgba(100,116,139,.1)'},ticks:{color:'#94a3b8',font:{size:10}}},
+              y:{grid:{color:'rgba(100,116,139,.1)'},ticks:{color:'#94a3b8',font:{size:10}}}},
+      ...opts}
+  });
+}
+
+// 24h battery — simulated
+const hrs = Array.from({length:24},(_,i)=>i+':00');
+const batData = Array.from({length:24},()=>60+Math.random()*35);
+const c1 = mkChart('chartBat24','line',hrs,[{data:batData,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.08)',fill:true,tension:.4,pointRadius:2,borderWidth:2}]);
+
+// Area coverage per day
+const days=['Sen','Sel','Rab','Kam','Jum','Sab','Min'];
+const areaD=days.map(()=>600+Math.round(Math.random()*600));
+const c2 = mkChart('chartArea','bar',days,[{data:areaD,backgroundColor:'rgba(6,182,212,.7)',borderRadius:6}]);
+
+// Soil pie
+const pieCtx = document.getElementById('chartSoilPie').getContext('2d');
+const c3 = new Chart(pieCtx, {
+  type:'doughnut',
+  data:{labels:['Optimal','Good','Fair','Poor'],datasets:[{data:[45,30,15,10],backgroundColor:['#10b981','#3b82f6','#f59e0b','#ef4444'],borderWidth:0,hoverOffset:4}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'65%'}
+});
+
+// Live telemetry multi-line
+let tData = {bat:[], speed:[], temp:[]};
+for(let i=0;i<20;i++){tData.bat.push(75+Math.random()*15);tData.speed.push(1+Math.random()*3);tData.temp.push(38+Math.random()*14);}
+const tLabels = Array.from({length:20},(_,i)=>i+'s');
+const c4 = new Chart(document.getElementById('chartTelemetry').getContext('2d'),{
+  type:'line',
+  data:{labels:tLabels,datasets:[
+    {label:'Baterai %',data:tData.bat,borderColor:'#3b82f6',fill:false,tension:.4,pointRadius:0,borderWidth:2},
+    {label:'Speed×10',data:tData.speed.map(v=>v*10),borderColor:'#10b981',fill:false,tension:.4,pointRadius:0,borderWidth:2},
+    {label:'Suhu',data:tData.temp,borderColor:'#f59e0b',fill:false,tension:.4,pointRadius:0,borderWidth:2}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#94a3b8',font:{size:10},boxWidth:12}}},scales:{x:{display:false},y:{grid:{color:'rgba(100,116,139,.1)'},ticks:{color:'#94a3b8',font:{size:10}}}}}
+});
+
+function updateAnalytics() {
+  fetch('/api/analytics/summary').then(r=>r.json()).then(d=>{
+    document.getElementById('aTotal').textContent = d.total_area.toLocaleString();
+    document.getElementById('aHours').textContent = d.total_hours;
+    document.getElementById('aSpeed').textContent = d.avg_speed;
+    document.getElementById('aEff').textContent = d.efficiency;
+  });
+  fetch('/api/telemetry').then(r=>r.json()).then(d=>{
+    c4.data.datasets[0].data.push(d.battery); c4.data.datasets[0].data.shift();
+    c4.data.datasets[1].data.push(d.speed*10); c4.data.datasets[1].data.shift();
+    c4.data.datasets[2].data.push(d.temperature); c4.data.datasets[2].data.shift();
+    c4.update('none');
+    c1.data.datasets[0].data.push(d.battery); c1.data.datasets[0].data.shift();
+    c1.update('none');
+  });
+}
+updateAnalytics();
+setInterval(updateAnalytics, 3000);
+</script>
+{% endblock %}

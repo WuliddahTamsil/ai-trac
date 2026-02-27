@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% block title %}Telemetri{% endblock %}
+{% block page_title %}Telemetri IoT{% endblock %}
+
+{% block content %}
+<div class="page-heading fade-up">
+  <h1>Telemetri Sensor IoT</h1>
+  <p>Data sensor ESP32 secara real-time — diperbarui setiap 2 detik</p>
+</div>
+
+<div class="grid-4 fade-up delay-1" style="margin-bottom:20px">
+  <div class="stat-card blue"><div class="stat-icon blue">🔋</div><div><div class="stat-value" id="t-bat">--</div><div class="stat-label">Baterai %</div></div></div>
+  <div class="stat-card green"><div class="stat-icon green">⚡</div><div><div class="stat-value" id="t-spd">--</div><div class="stat-label">Kecepatan km/h</div></div></div>
+  <div class="stat-card amber"><div class="stat-icon amber">🌡️</div><div><div class="stat-value" id="t-temp">--</div><div class="stat-label">Suhu °C</div></div></div>
+  <div class="stat-card teal"><div class="stat-icon teal">💧</div><div><div class="stat-value" id="t-hum">--</div><div class="stat-label">Kelembaban %</div></div></div>
+</div>
+
+<div class="grid-2 fade-up delay-2" style="margin-bottom:20px">
+  <!-- GPS CARD -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🛰️ GPS — UBlox NEO-6M</div>
+      <span class="badge badge-success" id="gps-badge">Lock</span>
+    </div>
+    <div class="gps-map" style="height:180px">
+      <div class="gps-grid"></div>
+      <div class="gps-label">GPS LIVE TRACK</div>
+      <div class="gps-dot" id="gpsDot" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)"></div>
+      <!-- Path trail -->
+      <canvas id="pathCanvas" style="position:absolute;inset:0;width:100%;height:100%;opacity:0.5"></canvas>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px">
+      <div style="background:var(--surface);border-radius:8px;padding:8px;text-align:center">
+        <div style="font-size:10px;color:var(--text-muted)">LATITUDE</div>
+        <div style="font-size:13px;font-weight:700;font-family:'Syne',sans-serif" id="g-lat">--</div>
+      </div>
+      <div style="background:var(--surface);border-radius:8px;padding:8px;text-align:center">
+        <div style="font-size:10px;color:var(--text-muted)">LONGITUDE</div>
+        <div style="font-size:13px;font-weight:700;font-family:'Syne',sans-serif" id="g-lng">--</div>
+      </div>
+      <div style="background:var(--surface);border-radius:8px;padding:8px;text-align:center">
+        <div style="font-size:10px;color:var(--text-muted)">HDOP</div>
+        <div style="font-size:13px;font-weight:700;font-family:'Syne',sans-serif" id="g-hdop">--</div>
+      </div>
+      <div style="background:var(--surface);border-radius:8px;padding:8px;text-align:center">
+        <div style="font-size:10px;color:var(--text-muted)">ALTITUDE</div>
+        <div style="font-size:13px;font-weight:700;font-family:'Syne',sans-serif" id="g-alt">--</div>
+      </div>
+      <div style="background:var(--surface);border-radius:8px;padding:8px;text-align:center">
+        <div style="font-size:10px;color:var(--text-muted)">HEADING</div>
+        <div style="font-size:13px;font-weight:700;font-family:'Syne',sans-serif" id="g-head">--°</div>
+      </div>
+      <div style="background:var(--surface);border-radius:8px;padding:8px;text-align:center">
+        <div style="font-size:10px;color:var(--text-muted)">SATELIT</div>
+        <div style="font-size:13px;font-weight:700;font-family:'Syne',sans-serif;color:var(--success)" id="g-sats">--</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SENSOR PANEL -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📡 Sensor Status</div>
+      <span class="badge badge-info">ESP32 GPIO</span>
+    </div>
+    <div>
+      <div class="sensor-row">
+        <div class="sensor-label">🔊 US Depan (GPIO32/33)</div>
+        <div class="progress-track" style="flex:1"><div class="progress-fill amber" id="ps-front" style="width:0%"></div></div>
+        <div class="sensor-value" id="vs-front">-- cm</div>
+      </div>
+      <div class="sensor-row">
+        <div class="sensor-label">🔊 US Kiri (GPIO21/22)</div>
+        <div class="progress-track" style="flex:1"><div class="progress-fill blue" id="ps-left" style="width:0%"></div></div>
+        <div class="sensor-value" id="vs-left">-- cm</div>
+      </div>
+      <div class="sensor-row">
+        <div class="sensor-label">🔊 US Kanan (GPIO18/19)</div>
+        <div class="progress-track" style="flex:1"><div class="progress-fill blue" id="ps-right" style="width:0%"></div></div>
+        <div class="sensor-value" id="vs-right">-- cm</div>
+      </div>
+      <div class="sensor-row">
+        <div class="sensor-label">⚡ Motor Kiri PWM (GPIO14)</div>
+        <div class="progress-track" style="flex:1"><div class="progress-fill green" id="ps-ml" style="width:0%"></div></div>
+        <div class="sensor-value" id="vs-ml">-- %</div>
+      </div>
+      <div class="sensor-row">
+        <div class="sensor-label">⚡ Motor Kanan PWM (GPIO13)</div>
+        <div class="progress-track" style="flex:1"><div class="progress-fill green" id="ps-mr" style="width:0%"></div></div>
+        <div class="sensor-value" id="vs-mr">-- %</div>
+      </div>
+    </div>
+
+    <!-- PIN STATUS TABLE -->
+    <div style="margin-top:16px">
+      <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:8px">Status Pin ESP32</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
+        {% set pins = [('GPIO13','PWM'),('GPIO14','PWM'),('GPIO12','EN'),('GPIO26','EN'),
+                       ('GPIO32','TRIG'),('GPIO33','ECHO'),('GPIO21','TRIG'),('GPIO22','ECHO'),
+                       ('GPIO18','TRIG'),('GPIO19','ECHO'),('GPIO16','GPS'),('GPIO17','GPS'),
+                       ('GPIO4','PPS'),('GPIO23','iBUS'),('GPIO2','LED'),('GPIO15','BZR')] %}
+        {% for pin, role in pins %}
+        <div style="background:var(--surface);border-radius:6px;padding:5px;text-align:center">
+          <div style="font-size:9px;color:var(--text-muted)">{{ role }}</div>
+          <div style="font-size:10px;font-weight:600;color:var(--blue)">{{ pin }}</div>
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--success);margin:2px auto"></div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SPEED CHART -->
+<div class="card fade-up delay-3">
+  <div class="card-header">
+    <div class="card-title">⚡ Kecepatan & Heading Live</div>
+    <span class="badge badge-info">2s refresh</span>
+  </div>
+  <div class="chart-container" style="height:200px">
+    <canvas id="speedChart"></canvas>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let speedChart;
+let speedData = { labels: [], speed: [], heading: [] };
+
+let pathPoints = [];
+let baseLat = null, baseLng = null;
+
+function drawPath(canvas, points) {
+  if (points.length < 2) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = 'rgba(0,200,224,0.6)';
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(points[0].x, points[0].y);
+  for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+  ctx.stroke();
+}
+
+function updateTelemetry(data) {
+  el('t-bat').textContent = data.battery + '%';
+  el('t-spd').textContent = data.speed;
+  el('t-temp').textContent = data.temperature + '°C';
+  el('t-hum').textContent = data.humidity + '%';
+  el('g-lat').textContent = data.latitude;
+  el('g-lng').textContent = data.longitude;
+  el('g-hdop').textContent = data.hdop;
+  el('g-alt').textContent = data.altitude + 'm';
+  el('g-head').textContent = data.heading + '°';
+  el('g-sats').textContent = data.satellites;
+
+  const pct = (v, max) => Math.min(100, (v / max) * 100) + '%';
+  el('ps-front').style.width = pct(data.distance_front, 200);
+  el('vs-front').textContent = data.distance_front + ' cm';
+  el('ps-left').style.width = pct(data.distance_left, 150);
+  el('vs-left').textContent = data.distance_left + ' cm';
+  el('ps-right').style.width = pct(data.distance_right, 150);
+  el('vs-right').textContent = data.distance_right + ' cm';
+  el('ps-ml').style.width = data.motor_left + '%';
+  el('vs-ml').textContent = data.motor_left.toFixed(0) + '%';
+  el('ps-mr').style.width = data.motor_right + '%';
+  el('vs-mr').textContent = data.motor_right.toFixed(0) + '%';
+
+  // GPS dot
+  const dot = el('gpsDot');
+  const mapEl = dot?.parentElement;
+  if (dot && mapEl) {
+    if (!baseLat) { baseLat = data.latitude; baseLng = data.longitude; }
+    const xPct = 50 + (data.longitude - baseLng) * 100000;
+    const yPct = 50 - (data.latitude - baseLat) * 100000;
+    const x = Math.max(5, Math.min(95, xPct));
+    const y = Math.max(5, Math.min(95, yPct));
+    dot.style.left = x + '%';
+    dot.style.top = y + '%';
+
+    const canvas = el('pathCanvas');
+    if (canvas) {
+      canvas.width = mapEl.offsetWidth;
+      canvas.height = mapEl.offsetHeight;
+      pathPoints.push({ x: canvas.width * x / 100, y: canvas.height * y / 100 });
+      if (pathPoints.length > 50) pathPoints.shift();
+      drawPath(canvas, pathPoints);
+    }
+  }
+
+  // Speed chart
+  if (speedChart) {
+    speedData.labels.push(data.timestamp);
+    speedData.speed.push(data.speed);
+    speedData.heading.push(data.heading / 36); // normalize
+    if (speedData.labels.length > 30) {
+      speedData.labels.shift(); speedData.speed.shift(); speedData.heading.shift();
+    }
+    speedChart.data.labels = [...speedData.labels];
+    speedChart.data.datasets[0].data = [...speedData.speed];
+    speedChart.data.datasets[1].data = [...speedData.heading];
+    speedChart.update('none');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const ctx = document.getElementById('speedChart').getContext('2d');
+  speedChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        { label: 'Kecepatan', data: [], borderColor: 'rgb(26,108,246)', borderWidth: 2, tension: 0.4, fill: false, pointRadius: 0 },
+        { label: 'Heading /36', data: [], borderColor: 'rgb(245,158,11)', borderWidth: 1.5, tension: 0.4, fill: false, pointRadius: 0, borderDash: [4, 2] },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, position: 'bottom', labels: { color: '#8fa5c0', font: { family: 'DM Sans', size: 11 }, boxWidth: 10 } },
+        tooltip: { backgroundColor: 'rgba(10,22,40,0.9)' }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(143,165,192,0.1)' }, ticks: { color: '#8fa5c0', font: { size: 11 }, maxTicksLimit: 8 } },
+        y: { grid: { color: 'rgba(143,165,192,0.1)' }, ticks: { color: '#8fa5c0', font: { size: 11 } } }
+      }
+    }
+  });
+
+  const poller = new TelemetryPoller(2000);
+  poller.onData(updateTelemetry).start();
+});
+</script>
+{% endblock %}

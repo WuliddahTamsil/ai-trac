@@ -1,0 +1,154 @@
+{% extends "base/layout.html" %}
+{% set active = "settings" %}
+{% block title %}Settings{% endblock %}
+{% block page_title %}<i class="bi bi-gear-fill" style="color:var(--primary)"></i> Settings{% endblock %}
+{% block content %}
+<div class="grid-2">
+  <!-- Appearance -->
+  <div class="card">
+    <div class="card-header"><div class="card-title"><i class="bi bi-palette-fill"></i> Tampilan</div></div>
+    <div class="card-body" style="display:flex;flex-direction:column;gap:20px;">
+      <div class="flex justify-between items-center">
+        <div>
+          <div style="font-size:13.5px;font-weight:600;color:var(--text-primary);">Dark Mode</div>
+          <div style="font-size:12px;color:var(--text-muted)">Tampilan gelap untuk lingkungan low-light</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="darkToggle" onchange="toggleDark(this)">
+          <span class="toggle-knob"></span>
+        </label>
+      </div>
+      <div class="flex justify-between items-center">
+        <div>
+          <div style="font-size:13.5px;font-weight:600;color:var(--text-primary);">Bahasa</div>
+          <div style="font-size:12px;color:var(--text-muted)">Pilih bahasa antarmuka</div>
+        </div>
+        <select class="search-input" style="width:auto;" id="langSelect" onchange="changeLang(this.value)">
+          <option value="id">Bahasa Indonesia</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+      <div class="flex justify-between items-center">
+        <div>
+          <div style="font-size:13.5px;font-weight:600;color:var(--text-primary);">Refresh Rate</div>
+          <div style="font-size:12px;color:var(--text-muted)">Interval update data telemetri</div>
+        </div>
+        <select class="search-input" style="width:auto;" id="refreshRate">
+          <option value="1000">1 detik</option>
+          <option value="2000" selected>2 detik</option>
+          <option value="5000">5 detik</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hardware Bridge -->
+  <div class="card">
+    <div class="card-header"><div class="card-title"><i class="bi bi-usb-symbol"></i> Hardware Bridge</div></div>
+    <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
+      <div class="flex justify-between items-center">
+        <span style="font-size:13px;color:var(--text-secondary);">Status Bridge</span>
+        <span class="badge-pill badge-warning"><i class="bi bi-exclamation-circle"></i> Pending</span>
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">ESP32 IP Address</div>
+        <input class="search-input" style="max-width:100%;" placeholder="192.168.1.100" value="192.168.1.100">
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">WebSocket Port</div>
+        <input class="search-input" style="max-width:100%;" placeholder="81" value="81">
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Serial Port (jika lokal)</div>
+        <input class="search-input" style="max-width:100%;" placeholder="/dev/ttyUSB0 atau COM3">
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Baud Rate</div>
+        <select class="search-input" style="max-width:100%;">
+          <option>9600</option><option selected>115200</option><option>230400</option>
+        </select>
+      </div>
+      <button class="btn btn-primary w-full"><i class="bi bi-plug-fill"></i> Test Koneksi</button>
+    </div>
+  </div>
+
+  <!-- MQTT / ROS -->
+  <div class="card">
+    <div class="card-header"><div class="card-title"><i class="bi bi-broadcast-pin"></i> MQTT / ROS Bridge</div></div>
+    <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
+      <div class="flex justify-between items-center">
+        <div>
+          <div style="font-size:13.5px;font-weight:600;">MQTT</div>
+          <div style="font-size:12px;color:var(--text-muted)">Protokol IoT messaging</div>
+        </div>
+        <label class="toggle-switch"><input type="checkbox"><span class="toggle-knob"></span></label>
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">MQTT Broker</div>
+        <input class="search-input" style="max-width:100%;" placeholder="mqtt://broker.local:1883">
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Topic Prefix</div>
+        <input class="search-input" style="max-width:100%;" placeholder="aitrac/" value="aitrac/">
+      </div>
+      <div class="flex justify-between items-center">
+        <div>
+          <div style="font-size:13.5px;font-weight:600;">ROS Bridge</div>
+          <div style="font-size:12px;color:var(--text-muted)">ROS WebSocket bridge</div>
+        </div>
+        <label class="toggle-switch"><input type="checkbox"><span class="toggle-knob"></span></label>
+      </div>
+    </div>
+  </div>
+
+  <!-- About -->
+  <div class="card">
+    <div class="card-header"><div class="card-title"><i class="bi bi-info-circle-fill"></i> Tentang Sistem</div></div>
+    <div class="card-body" style="display:flex;flex-direction:column;gap:10px;font-size:13px;">
+      <div class="flex justify-between"><span style="color:var(--text-muted)">Versi Firmware</span><span class="mono">v1.7.1</span></div>
+      <div class="flex justify-between"><span style="color:var(--text-muted)">Platform</span><span class="mono">ESP32 (WROOM-32)</span></div>
+      <div class="flex justify-between"><span style="color:var(--text-muted)">Framework</span><span class="mono">Arduino / Flask</span></div>
+      <div class="flex justify-between"><span style="color:var(--text-muted)">GPS Module</span><span class="mono">UBlox NEO-6M</span></div>
+      <div class="flex justify-between"><span style="color:var(--text-muted)">Remote</span><span class="mono">FlySky FS-i6 iBUS</span></div>
+      <div class="flex justify-between"><span style="color:var(--text-muted)">Motor Driver</span><span class="mono">BTS7960 × 2</span></div>
+      <div class="flex justify-between"><span style="color:var(--text-muted)">Sensor Jarak</span><span class="mono">HC-SR04 × 3</span></div>
+      <div class="flex justify-between"><span style="color:var(--text-muted)">Institusi</span><span class="mono">RnD IPB University</span></div>
+      <div style="margin-top:8px;padding-top:12px;border-top:1px solid var(--border-light);text-align:center;">
+        <span class="badge-pill badge-primary">AI-TRAC Autonomous Tractor Platform</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.toggle-switch{position:relative;display:inline-block;width:44px;height:24px;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.toggle-knob{position:absolute;cursor:pointer;inset:0;background:var(--border);border-radius:24px;transition:.3s;}
+.toggle-knob::before{content:'';position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;}
+input:checked+.toggle-knob{background:var(--primary);}
+input:checked+.toggle-knob::before{transform:translateX(20px);}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const darkTog = document.getElementById('darkToggle');
+if(darkTog) darkTog.checked = document.documentElement.getAttribute('data-theme')==='dark';
+
+function toggleDark(el) {
+  const t = el.checked ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('aitrac-theme', t);
+  const ic = document.getElementById('themeIcon');
+  if(ic) ic.className = t==='dark'?'bi bi-sun-fill':'bi bi-moon-fill';
+}
+
+const langSel = document.getElementById('langSelect');
+if(langSel) langSel.value = localStorage.getItem('aitrac-lang')||'id';
+
+function changeLang(v) {
+  localStorage.setItem('aitrac-lang', v);
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===v));
+}
+</script>
+{% endblock %}

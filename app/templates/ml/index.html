@@ -1,0 +1,176 @@
+{% extends "base/layout.html" %}
+{% set active = "ml" %}
+{% block title %}ML Monitor{% endblock %}
+{% block page_title %}<i class="bi bi-eye-fill" style="color:var(--primary)"></i> Machine Learning Monitor{% endblock %}
+{% block extra_css %}
+<style>
+.ml-grid{display:grid;grid-template-columns:2fr 1fr;gap:24px;}
+@media(max-width:900px){.ml-grid{grid-template-columns:1fr;}}
+.video-area{background:#000;border-radius:var(--radius);overflow:hidden;position:relative;aspect-ratio:16/9;}
+.video-label{position:absolute;top:12px;left:12px;background:rgba(239,68,68,.85);color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;display:flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;}
+.live-blink{width:7px;height:7px;border-radius:50%;background:#fff;animation:blink .8s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+.video-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,.4);gap:12px;}
+.video-placeholder i{font-size:48px;}
+.canvas-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
+.conf-meter{background:var(--bg);border-radius:var(--radius);padding:16px;margin-bottom:14px;}
+.conf-label{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.5px;margin-bottom:8px;text-transform:uppercase;}
+.conf-val{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--text-primary);}
+</style>
+{% endblock %}
+{% block content %}
+<div class="ml-grid">
+  <!-- Video + Detection -->
+  <div style="display:flex;flex-direction:column;gap:20px;">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><i class="bi bi-camera-video-fill"></i> Live Feed — Camera</div>
+        <span class="badge-pill badge-danger"><span class="live-blink" style="display:inline-block;margin-right:3px;"></span> LIVE</span>
+      </div>
+      <div class="card-body" style="padding:12px;">
+        <div class="video-area">
+          <div class="video-label"><span class="live-blink"></span>SIMULASI</div>
+          <div class="video-placeholder">
+            <i class="bi bi-camera-video-off"></i>
+            <div style="font-size:13px;text-align:center;max-width:220px;">Camera stream akan aktif saat terkoneksi ke hardware ESP32-CAM</div>
+            <div style="font-size:11px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.25);">rtsp://192.168.1.100:8554/stream</div>
+          </div>
+          <canvas id="bboxCanvas" class="canvas-overlay"></canvas>
+        </div>
+      </div>
+    </div>
+    <!-- Detection History Chart -->
+    <div class="card">
+      <div class="card-header"><div class="card-title"><i class="bi bi-bar-chart-fill"></i> Kualitas Bajakan — 20 Deteksi Terakhir</div></div>
+      <div class="card-body">
+        <div class="chart-container" style="height:180px;"><canvas id="chartQuality"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detection Panel -->
+  <div style="display:flex;flex-direction:column;gap:20px;">
+    <div class="card">
+      <div class="card-header"><div class="card-title"><i class="bi bi-layers-fill"></i> Hasil Deteksi</div></div>
+      <div class="card-body">
+        <div class="conf-meter">
+          <div class="conf-label">Label Kondisi</div>
+          <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--primary)" id="mlLabel">Tanah Optimal</div>
+        </div>
+        <div class="conf-meter">
+          <div class="conf-label">Confidence Score</div>
+          <div class="conf-val"><span id="mlConf">93.2</span><span style="font-size:16px;color:var(--text-muted)">%</span></div>
+          <div class="progress-bar-wrap mt-4"><div class="progress-bar-fill" id="confBar" style="width:93.2%"></div></div>
+        </div>
+        <div class="conf-meter">
+          <div class="conf-label">Kualitas Bajakan</div>
+          <div class="conf-val"><span id="mlQuality">87</span><span style="font-size:16px;color:var(--text-muted)">%</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title"><i class="bi bi-clipboard-data"></i> Statistik</div></div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:12px;">
+        <div class="flex justify-between" style="font-size:13px;">
+          <span style="color:var(--text-muted)">Total Deteksi</span>
+          <span class="mono" id="statTotal" style="font-weight:700">1,452</span>
+        </div>
+        <div class="flex justify-between" style="font-size:13px;">
+          <span style="color:var(--text-muted)">Rata-rata Kualitas</span>
+          <span class="mono" id="statAvg" style="font-weight:700">84.2%</span>
+        </div>
+        <div class="flex justify-between" style="font-size:13px;">
+          <span style="color:var(--text-muted)">Optimal</span>
+          <span class="mono badge-pill badge-success" id="statOpt">45%</span>
+        </div>
+        <div class="flex justify-between" style="font-size:13px;">
+          <span style="color:var(--text-muted)">Good</span>
+          <span class="mono badge-pill badge-primary" id="statGood">30%</span>
+        </div>
+        <div class="flex justify-between" style="font-size:13px;">
+          <span style="color:var(--text-muted)">Fair</span>
+          <span class="mono badge-pill badge-warning" id="statFair">15%</span>
+        </div>
+        <div class="flex justify-between" style="font-size:13px;">
+          <span style="color:var(--text-muted)">Poor</span>
+          <span class="mono badge-pill badge-danger" id="statPoor">10%</span>
+        </div>
+        <div class="flex justify-between" style="font-size:13px;">
+          <span style="color:var(--text-muted)">Last Update</span>
+          <span class="mono" id="statTs" style="font-size:11px;color:var(--text-muted)">--</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Quality Chart
+const qCtx = document.getElementById('chartQuality').getContext('2d');
+let qData = Array.from({length:20},()=>70+Math.random()*25);
+const chartQ = new Chart(qCtx, {
+  type:'bar',
+  data:{
+    labels:Array.from({length:20},(_,i)=>'#'+(i+1)),
+    datasets:[{
+      data:qData,
+      backgroundColor:qData.map(v=>v>80?'rgba(16,185,129,.7)':v>65?'rgba(245,158,11,.7)':'rgba(239,68,68,.7)'),
+      borderRadius:4
+    }]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{grid:{display:false},ticks:{color:'#94a3b8',font:{size:10}}},
+      y:{grid:{color:'rgba(100,116,139,.1)'},ticks:{color:'#94a3b8',font:{size:10}},min:0,max:100}
+    }
+  }
+});
+
+// Bounding box simulation
+const canvas = document.getElementById('bboxCanvas');
+function drawBbox(bbox, label, conf) {
+  const w = canvas.offsetWidth, h = canvas.offsetHeight;
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,w,h);
+  if(!bbox) return;
+  const scaleX = w/640, scaleY = h/480;
+  const x=bbox.x*scaleX, y=bbox.y*scaleY, bw=bbox.w*scaleX, bh=bbox.h*scaleY;
+  ctx.strokeStyle = '#06b6d4'; ctx.lineWidth = 2;
+  ctx.strokeRect(x,y,bw,bh);
+  // Label bg
+  ctx.fillStyle='rgba(6,182,212,.85)';
+  ctx.fillRect(x,y-22,bw,22);
+  ctx.fillStyle='#fff'; ctx.font='bold 12px DM Mono, monospace';
+  ctx.fillText(`${label} ${(conf*100).toFixed(0)}%`, x+6, y-6);
+}
+
+function fetchML() {
+  fetch('/api/ml/detection').then(r=>r.json()).then(d=>{
+    document.getElementById('mlLabel').textContent = d.label;
+    const c = (d.confidence*100).toFixed(1);
+    document.getElementById('mlConf').textContent = c;
+    document.getElementById('confBar').style.width = c+'%';
+    document.getElementById('mlQuality').textContent = Math.round(d.quality_score);
+    document.getElementById('statTotal').textContent = d.total_detections.toLocaleString();
+    document.getElementById('statAvg').textContent = d.avg_quality+'%';
+    document.getElementById('statTs').textContent = new Date().toLocaleTimeString('id-ID');
+    drawBbox(d.bbox, d.label, d.confidence);
+
+    // Update chart
+    const newVal = d.quality_score;
+    chartQ.data.datasets[0].data.push(Math.round(newVal));
+    chartQ.data.datasets[0].data.shift();
+    chartQ.data.datasets[0].backgroundColor = chartQ.data.datasets[0].data.map(v=>
+      v>80?'rgba(16,185,129,.7)':v>65?'rgba(245,158,11,.7)':'rgba(239,68,68,.7)');
+    chartQ.update('none');
+  });
+}
+fetchML();
+setInterval(fetchML, 2000);
+</script>
+{% endblock %}

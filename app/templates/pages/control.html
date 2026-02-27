@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block title %}Kontrol{% endblock %}
+{% block page_title %}Panel Kontrol{% endblock %}
+
+{% block content %}
+<div class="page-heading fade-up">
+  <h1>Kontrol Traktor</h1>
+  <p>Kendalikan AI-TRAC secara manual atau aktifkan mode otonom</p>
+</div>
+
+<div class="grid-2" style="margin-bottom:20px">
+  <!-- LEFT: MODE + CONTROLS -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+
+    <!-- MODE SELECTOR -->
+    <div class="card fade-up">
+      <div class="card-header">
+        <div class="card-title">🎮 Mode Operasi</div>
+        <span class="badge" id="modeStatusBadge">MANUAL</span>
+      </div>
+      <div class="mode-selector" style="margin-bottom:12px">
+        <button class="mode-btn active" data-mode="manual" onclick="setMode('manual')">Manual</button>
+        <button class="mode-btn" data-mode="auto" onclick="setMode('auto')">Otomatis</button>
+        <button class="mode-btn" data-mode="line_following" onclick="setMode('line_following')">Line Follow</button>
+      </div>
+      <p id="modeDesc" style="font-size:12px;color:var(--text-muted)">Mode manual: kendalikan traktor menggunakan tombol arah atau keyboard (WASD / Arrow keys).</p>
+    </div>
+
+    <!-- CONTROL PAD -->
+    <div class="card fade-up delay-1">
+      <div class="card-header">
+        <div class="card-title">🕹️ Joystick Kontrol</div>
+        <span style="font-size:11px;color:var(--text-muted)">WASD / Arrow Keys</span>
+      </div>
+      <div class="control-pad" style="margin:8px 0">
+        <button class="ctrl-btn" data-dir="forward">▲</button>
+        <button class="ctrl-btn" data-dir="left">◄</button>
+        <button class="ctrl-btn" data-dir="stop">■ STOP</button>
+        <button class="ctrl-btn" data-dir="right">►</button>
+        <button class="ctrl-btn" data-dir="backward">▼</button>
+      </div>
+      <div style="margin-top:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:12px;font-weight:600;color:var(--text-secondary)">Kecepatan</span>
+          <span style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--blue)" id="speedValue">50%</span>
+        </div>
+        <input type="range" class="speed-slider" id="speedSlider" min="0" max="100" value="50">
+      </div>
+    </div>
+
+    <!-- CONNECTION STATUS -->
+    <div class="card fade-up delay-2">
+      <div class="card-header">
+        <div class="card-title">🔗 Status Koneksi</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="background:var(--surface);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:20px;margin-bottom:4px">📶</div>
+          <div style="font-size:11px;color:var(--text-muted)">WiFi</div>
+          <div class="badge badge-success" style="margin-top:4px">Terhubung</div>
+        </div>
+        <div style="background:var(--surface);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:20px;margin-bottom:4px">🛰️</div>
+          <div style="font-size:11px;color:var(--text-muted)">GPS</div>
+          <div class="badge badge-success" id="gps-conn" style="margin-top:4px">Valid</div>
+        </div>
+        <div style="background:var(--surface);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:20px;margin-bottom:4px">📡</div>
+          <div style="font-size:11px;color:var(--text-muted)">ESP32</div>
+          <div class="badge badge-success" style="margin-top:4px">Online</div>
+        </div>
+        <div style="background:var(--surface);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:20px;margin-bottom:4px">🎮</div>
+          <div style="font-size:11px;color:var(--text-muted)">Remote</div>
+          <div class="badge badge-warning" style="margin-top:4px">Standby</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: EMERGENCY + STATUS -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+
+    <!-- EMERGENCY STOP -->
+    <div class="card fade-up" style="border-color:rgba(239,68,68,0.3)">
+      <button class="emergency-stop-btn" id="emergencyBtn" onclick="triggerEmergency()">
+        ⚠️ HENTI DARURAT
+      </button>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn btn-outline" style="flex:1" onclick="clearEmergency()">✅ Lanjutkan</button>
+        <button class="btn btn-warning" style="flex:1" onclick="resetSystem()">🔄 Reset Sistem</button>
+      </div>
+      <div id="emergencyStatus" style="text-align:center;margin-top:10px;font-size:12px;color:var(--text-muted)">
+        Status: Normal — Traktor siap beroperasi
+      </div>
+    </div>
+
+    <!-- LIVE INDICATORS -->
+    <div class="card fade-up delay-1">
+      <div class="card-header">
+        <div class="card-title">📊 Indikator Live</div>
+        <span class="badge badge-info">2s refresh</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+        <div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">BATERAI</div>
+          <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--blue)" id="ctrl-bat">--</div>
+          <div class="progress-track" style="margin-top:6px"><div class="progress-fill blue" id="ctrl-bat-bar" style="width:0%"></div></div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">KECEPATAN AKTUAL</div>
+          <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--success)" id="ctrl-spd">--</div>
+          <div style="font-size:11px;color:var(--text-muted)">km/h</div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">SENSOR JARAK</div>
+        <div style="display:flex;gap:8px">
+          <div style="flex:1;background:var(--surface);border-radius:8px;padding:8px;text-align:center">
+            <div style="font-size:10px;color:var(--text-muted)">DEPAN</div>
+            <div style="font-size:16px;font-weight:700;color:var(--warning)" id="ctrl-front">-- cm</div>
+          </div>
+          <div style="flex:1;background:var(--surface);border-radius:8px;padding:8px;text-align:center">
+            <div style="font-size:10px;color:var(--text-muted)">KIRI</div>
+            <div style="font-size:16px;font-weight:700;color:var(--teal)" id="ctrl-left">-- cm</div>
+          </div>
+          <div style="flex:1;background:var(--surface);border-radius:8px;padding:8px;text-align:center">
+            <div style="font-size:10px;color:var(--text-muted)">KANAN</div>
+            <div style="font-size:16px;font-weight:700;color:var(--teal)" id="ctrl-right">-- cm</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRAKTOR VISUALIZER -->
+    <div class="card fade-up delay-2">
+      <div class="card-header">
+        <div class="card-title">🚜 Visualisasi Traktor</div>
+      </div>
+      <div style="position:relative;width:180px;margin:0 auto;padding:16px 0">
+        <!-- Traktor SVG-like representation -->
+        <div style="width:80px;height:100px;margin:0 auto;background:linear-gradient(180deg,var(--navy-mid),var(--navy));border-radius:10px 10px 6px 6px;position:relative;display:flex;align-items:center;justify-content:center;color:white;font-size:32px">
+          🚜
+          <!-- Direction arrow -->
+          <div id="dirArrow" style="position:absolute;top:-24px;left:50%;transform:translateX(-50%);font-size:18px;transition:all 0.3s;opacity:0.5">↑</div>
+        </div>
+        <!-- Wheels -->
+        <div style="display:flex;justify-content:space-between;margin-top:4px">
+          <div style="width:20px;height:20px;border-radius:50%;background:var(--text-primary);border:3px solid var(--text-muted)"></div>
+          <div style="width:20px;height:20px;border-radius:50%;background:var(--text-primary);border:3px solid var(--text-muted)"></div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:8px">
+        <span class="badge badge-success" id="tractor-status">SIAP</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const modeDescs = {
+  manual: 'Mode manual: kendalikan traktor menggunakan tombol arah atau keyboard (WASD / Arrow keys).',
+  auto: 'Mode otomatis: AI-TRAC bernavigasi sendiri berdasarkan peta dan sensor obstacle.',
+  line_following: 'Mode line following: traktor mengikuti garis yang telah ditentukan secara otomatis.'
+};
+
+function setMode(mode) {
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  el('modeDesc').textContent = modeDescs[mode];
+  const names = { manual: 'MANUAL', auto: 'OTOMATIS', line_following: 'LINE FOLLOW' };
+  const colors = { manual: 'badge-info', auto: 'badge-success', line_following: 'badge-warning' };
+  const badge = el('modeStatusBadge');
+  badge.textContent = names[mode];
+  badge.className = 'badge ' + colors[mode];
+  ControlManager.sendCommand('set_mode', { mode });
+}
+
+function triggerEmergency() {
+  ControlManager.sendCommand('emergency_stop');
+  el('emergencyStatus').innerHTML = '🔴 <strong>HENTI DARURAT AKTIF</strong> — Semua motor dihentikan';
+  el('emergencyStatus').style.color = 'var(--danger)';
+  el('tractor-status').textContent = 'DARURAT';
+  el('tractor-status').className = 'badge badge-danger';
+  el('dirArrow').style.opacity = '0';
+}
+
+function clearEmergency() {
+  ControlManager.sendCommand('emergency_clear');
+  el('emergencyStatus').textContent = 'Status: Normal — Traktor siap beroperasi';
+  el('emergencyStatus').style.color = 'var(--text-muted)';
+  el('tractor-status').textContent = 'SIAP';
+  el('tractor-status').className = 'badge badge-success';
+}
+
+function resetSystem() {
+  clearEmergency();
+  setMode('manual');
+}
+
+function updateDirArrow(dir) {
+  const arrows = { forward: '↑', backward: '↓', left: '←', right: '→', stop: '·' };
+  el('dirArrow').textContent = arrows[dir] || '·';
+  el('dirArrow').style.opacity = dir === 'stop' ? '0.3' : '1';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  ControlManager.setupControlPad();
+  initSpeedSlider();
+
+  const poller = new TelemetryPoller(2000);
+  poller.onData(data => {
+    el('ctrl-bat').textContent = data.battery + '%';
+    el('ctrl-bat-bar').style.width = data.battery + '%';
+    el('ctrl-spd').textContent = data.speed;
+    el('ctrl-front').textContent = data.distance_front + ' cm';
+    el('ctrl-left').textContent = data.distance_left + ' cm';
+    el('ctrl-right').textContent = data.distance_right + ' cm';
+
+    // Color distance warnings
+    const front = parseFloat(data.distance_front);
+    el('ctrl-front').style.color = front < 30 ? 'var(--danger)' : front < 60 ? 'var(--warning)' : 'var(--success)';
+  });
+  poller.start();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}Pengaturan{% endblock %}
+{% block page_title %}Pengaturan Sistem{% endblock %}
+
+{% block content %}
+<div class="page-heading fade-up">
+  <h1>Pengaturan Global</h1>
+  <p>Konfigurasi tampilan, koneksi, dan preferensi sistem AI-TRAC</p>
+</div>
+
+<div class="grid-2" style="margin-bottom:20px">
+  <!-- APPEARANCE -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div class="card fade-up">
+      <div class="card-title" style="margin-bottom:16px">🎨 Tampilan</div>
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-weight:600;font-size:13px">Mode Gelap</div>
+            <div style="font-size:12px;color:var(--text-muted)">Aktifkan tema gelap pada dashboard</div>
+          </div>
+          <button class="toggle" id="darkToggle" onclick="toggleDark()"></button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-weight:600;font-size:13px">Bahasa</div>
+            <div style="font-size:12px;color:var(--text-muted)">Pilih bahasa antarmuka</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="lang-btn btn btn-sm btn-outline" data-lang="id" onclick="LangManager.set('id')">🇮🇩 ID</button>
+            <button class="lang-btn btn btn-sm btn-outline" data-lang="en" onclick="LangManager.set('en')">🇺🇸 EN</button>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-weight:600;font-size:13px">Animasi UI</div>
+            <div style="font-size:12px;color:var(--text-muted)">Aktifkan transisi dan animasi</div>
+          </div>
+          <button class="toggle on" id="animToggle" onclick="this.classList.toggle('on')"></button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-weight:600;font-size:13px">Notifikasi Suara</div>
+            <div style="font-size:12px;color:var(--text-muted)">Bunyi alert untuk peringatan kritis</div>
+          </div>
+          <button class="toggle" id="soundToggle" onclick="this.classList.toggle('on')"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HARDWARE CONFIG -->
+    <div class="card fade-up delay-1">
+      <div class="card-title" style="margin-bottom:16px">🔧 Konfigurasi Hardware</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:4px">IP Address ESP32</label>
+          <input type="text" class="form-input" value="192.168.1.100" placeholder="192.168.x.x">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:4px">Port WebServer</label>
+          <input type="text" class="form-input" value="80" placeholder="80">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:4px">MQTT Broker (opsional)</label>
+          <input type="text" class="form-input" value="" placeholder="mqtt://broker.example.com">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:4px">Timezone Offset (jam)</label>
+          <input type="number" class="form-input" value="7" min="-12" max="14">
+        </div>
+        <button class="btn btn-primary" style="margin-top:4px">💾 Simpan Konfigurasi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SYSTEM INFO + PIN MAP -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <!-- SYSTEM INFO -->
+    <div class="card fade-up delay-1">
+      <div class="card-title" style="margin-bottom:16px">ℹ️ Informasi Sistem</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;padding:10px;background:var(--surface);border-radius:8px">
+          <span style="font-size:12px;color:var(--text-muted)">Versi Firmware</span>
+          <span style="font-size:12px;font-weight:600">AI-Trac Auto V1.7.1</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px;background:var(--surface);border-radius:8px">
+          <span style="font-size:12px;color:var(--text-muted)">Mikrokontroler</span>
+          <span style="font-size:12px;font-weight:600">ESP32 WROOM-32</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px;background:var(--surface);border-radius:8px">
+          <span style="font-size:12px;color:var(--text-muted)">Motor Driver</span>
+          <span style="font-size:12px;font-weight:600">BTS7960 x2</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px;background:var(--surface);border-radius:8px">
+          <span style="font-size:12px;color:var(--text-muted)">GPS Module</span>
+          <span style="font-size:12px;font-weight:600">UBlox NEO-6M</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px;background:var(--surface);border-radius:8px">
+          <span style="font-size:12px;color:var(--text-muted)">Remote Control</span>
+          <span style="font-size:12px;font-weight:600">FlySky FS-i6 iBUS</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px;background:var(--surface);border-radius:8px">
+          <span style="font-size:12px;color:var(--text-muted)">Ultrasonic</span>
+          <span style="font-size:12px;font-weight:600">HC-SR04 x3 (Depan, Kiri, Kanan)</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px;background:var(--surface);border-radius:8px">
+          <span style="font-size:12px;color:var(--text-muted)">PWM Frequency</span>
+          <span style="font-size:12px;font-weight:600">5000 Hz / 8-bit</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px;background:var(--surface);border-radius:8px">
+          <span style="font-size:12px;color:var(--text-muted)">GPS Baud Rate</span>
+          <span style="font-size:12px;font-weight:600">9600 bps (UART2)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PINOUT -->
+    <div class="card fade-up delay-2">
+      <div class="card-title" style="margin-bottom:12px">📌 Pinout ESP32</div>
+      <div style="overflow-x:auto">
+        <table class="data-table" style="font-size:11px">
+          <thead>
+            <tr>
+              <th>GPIO</th><th>Komponen</th><th>Fungsi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td style="color:var(--blue)">GPIO13</td><td>BTS7960 Kanan</td><td>PWM Output</td></tr>
+            <tr><td style="color:var(--blue)">GPIO14</td><td>BTS7960 Kiri</td><td>PWM Output</td></tr>
+            <tr><td style="color:var(--blue)">GPIO12</td><td>BTS7960 R_EN</td><td>Digital Out</td></tr>
+            <tr><td style="color:var(--blue)">GPIO26</td><td>BTS7960 L_EN</td><td>Digital Out</td></tr>
+            <tr><td style="color:var(--warning)">GPIO32/33</td><td>US Depan</td><td>TRIG/ECHO</td></tr>
+            <tr><td style="color:var(--warning)">GPIO21/22</td><td>US Kiri</td><td>TRIG/ECHO</td></tr>
+            <tr><td style="color:var(--warning)">GPIO18/19</td><td>US Kanan</td><td>TRIG/ECHO</td></tr>
+            <tr><td style="color:var(--success)">GPIO16/17</td><td>GPS UBlox</td><td>UART2 RX/TX</td></tr>
+            <tr><td style="color:var(--success)">GPIO4</td><td>GPS PPS</td><td>Digital In</td></tr>
+            <tr><td style="color:var(--teal)">GPIO23</td><td>FlySky iBUS</td><td>UART1 RX</td></tr>
+            <tr><td style="color:var(--text-muted)">GPIO2</td><td>Status LED</td><td>Digital Out</td></tr>
+            <tr><td style="color:var(--text-muted)">GPIO15</td><td>Buzzer</td><td>Digital Out</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleDark() {
+  ThemeManager.toggle();
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  el('darkToggle').classList.toggle('on', isDark);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  if (el('darkToggle')) el('darkToggle').classList.toggle('on', isDark);
+});
+</script>
+{% endblock %}

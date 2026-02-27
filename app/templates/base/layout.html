@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}AI-TRAC{% endblock %} | Autonomous Tractor Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="brand">
+      <div class="brand-icon">
+        <img src="{{ url_for('static', filename='img/ai-trac.png') }}" alt="AI-TRAC logo">
+      </div> <!-- text removed to give logo more room -->
+    </div>
+    <button class="sidebar-close d-lg-none" id="sidebarClose"><i class="bi bi-x-lg"></i></button>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">UTAMA</div>
+    <a href="/dashboard/" class="nav-item {% if active == 'dashboard' %}active{% endif %}">
+      <i class="bi bi-grid-1x2-fill"></i><span data-i18n="dashboard">Dashboard</span>
+    </a>
+    <a href="/control/" class="nav-item {% if active == 'control' %}active{% endif %}">
+      <i class="bi bi-joystick"></i><span data-i18n="control">Control Mode</span>
+    </a>
+    <a href="/ml/" class="nav-item {% if active == 'ml' %}active{% endif %}">
+      <i class="bi bi-eye-fill"></i><span data-i18n="ml">ML Monitor</span>
+    </a>
+
+    <div class="nav-section-label" data-i18n="section_analytics">ANALITIK</div>
+    <a href="/analytics/" class="nav-item {% if active == 'analytics' %}active{% endif %}">
+      <i class="bi bi-graph-up-arrow"></i><span data-i18n="analytics">Analytics</span>
+    </a>
+    <a href="/telemetry/" class="nav-item {% if active == 'telemetry' %}active{% endif %}">
+      <i class="bi bi-broadcast"></i><span data-i18n="telemetry">Telemetry</span>
+    </a>
+    <a href="/history/" class="nav-item {% if active == 'history' %}active{% endif %}">
+      <i class="bi bi-clock-history"></i><span data-i18n="history">Riwayat Misi</span>
+    </a>
+
+    <div class="nav-section-label" data-i18n="section_system">SISTEM</div>
+    <a href="/maintenance/" class="nav-item {% if active == 'maintenance' %}active{% endif %}">
+      <i class="bi bi-tools"></i><span data-i18n="maintenance">Maintenance</span>
+    </a>
+    <a href="/settings/" class="nav-item {% if active == 'settings' %}active{% endif %}">
+      <i class="bi bi-gear-fill"></i><span data-i18n="settings">Settings</span>
+    </a>
+    <a href="/" class="nav-item">
+      <i class="bi bi-box-arrow-right"></i><span>Log Out</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="connection-status">
+      <span class="conn-dot" id="connDot"></span>
+      <span id="connLabel">Terhubung</span>
+    </div>
+    <div class="version-tag">v1.7.1 — ESP32</div>
+  </div>
+</aside>
+
+<!-- OVERLAY -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- MAIN WRAPPER -->
+<div class="main-wrapper" id="mainWrapper">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" id="hamburger"><i class="bi bi-list"></i></button>
+      <div class="page-title">{% block page_title %}Dashboard{% endblock %}</div>
+    </div>
+    <div class="topbar-right">
+      <div class="lang-switch">
+        <button class="lang-btn active" data-lang="id">ID</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+      </div>
+      <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode">
+        <i class="bi bi-moon-fill" id="themeIcon"></i>
+      </button>
+      <div class="notif-wrapper">
+        <button class="notif-btn" id="notifBtn">
+          <i class="bi bi-bell-fill"></i>
+          <span class="badge" id="notifBadge">5</span>
+        </button>
+        <div class="notif-dropdown" id="notifDropdown">
+          <div class="notif-header">Notifikasi <span class="notif-count-badge" id="notifCount">5</span></div>
+          <div id="notifList"></div>
+          <div class="notif-footer">Lihat semua</div>
+        </div>
+      </div>
+      <div class="user-pill">
+        <i class="bi bi-person-circle"></i>
+        <span>Operator</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- PAGE CONTENT -->
+  <main class="page-content">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>
