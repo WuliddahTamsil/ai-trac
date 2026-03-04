@@ -2,10 +2,49 @@ import random
 import math
 import time
 from datetime import datetime, timedelta
+import threading
 
 _start_time = time.time()
 _base_lat = -6.5971
 _base_lng = 106.8060
+
+# Latest telemetry pushed by external device (ESP32)
+_latest_lock = threading.Lock()
+_latest_data = None
+
+def set_latest_data(d):
+    """Store last telemetry received from external device.
+
+    The ESP32 sketch may use short names like ``lat``/``lon``; normalize them
+    to what the Flask backend expects (``latitude``/``longitude``) so the web
+    interface shows valid GPS status even if the device uses different field
+    names.
+    """
+    global _latest_data
+    with _latest_lock:
+        if not isinstance(d, dict):
+            return False
+        # copy so we can mutate
+        d = d.copy()
+        # normalize common synonyms
+        if 'lat' in d and 'latitude' not in d:
+            d['latitude'] = d.pop('lat')
+        if 'lon' in d and 'longitude' not in d:
+            d['longitude'] = d.pop('lon')
+        if 'sat' in d and 'satellites' not in d:
+            d['satellites'] = d.pop('sat')
+        # ensure timestamp fields
+        d.setdefault('timestamp', datetime.now().strftime("%H:%M:%S"))
+        d['_received_at'] = time.time()
+        _latest_data = d
+    return True
+
+def get_latest_data():
+    """Return latest telemetry if available, otherwise synthetic telemetry."""
+    with _latest_lock:
+        if _latest_data is not None:
+            return _latest_data.copy()
+    return get_telemetry()
 
 
 def get_telemetry():

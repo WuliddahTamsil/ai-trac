@@ -23,14 +23,21 @@
   <!-- Video + Detection -->
   <div style="display:flex;flex-direction:column;gap:20px;">
     <div class="card">
-      <div class="card-header">
-        <div class="card-title"><i class="bi bi-camera-video-fill"></i> Live Feed — Camera</div>
-        <span class="badge-pill badge-danger"><span class="live-blink" style="display:inline-block;margin-right:3px;"></span> LIVE</span>
+      <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="card-title"><i class="bi bi-camera-video-fill"></i> Live Feed — Camera</div>
+          <span id="liveBadge" class="badge-pill badge-danger"><span class="live-blink" style="display:inline-block;margin-right:6px;"></span> LIVE</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button id="camToggleBtn" class="btn btn-outline" style="padding:6px 10px;font-size:13px">Stop Camera</button>
+        </div>
       </div>
       <div class="card-body" style="padding:12px;">
-        <div class="video-area">
-          <div class="video-label"><span class="live-blink"></span>SIMULASI</div>
-          <div class="video-placeholder">
+        <div class="video-area" style="position:relative;">
+          <!-- live MJPEG stream served by backend -->
+          <img id="videoStream" src="{{ url_for('ml.stream') }}" alt="Live Feed" style="width:100%;height:100%;object-fit:cover;display:none;">
+          <div class="video-label"><span class="live-blink"></span>LIVE</div>
+          <div class="video-placeholder" id="videoPlaceholder">
             <i class="bi bi-camera-video-off"></i>
             <div style="font-size:13px;text-align:center;max-width:220px;">Camera stream akan aktif saat terkoneksi ke hardware ESP32-CAM</div>
             <div style="font-size:11px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.25);">rtsp://192.168.1.100:8554/stream</div>
@@ -109,14 +116,14 @@
 <script>
 // Quality Chart
 const qCtx = document.getElementById('chartQuality').getContext('2d');
-let qData = Array.from({length:20},()=>70+Math.random()*25);
+let qData = []; // will push real values
 const chartQ = new Chart(qCtx, {
   type:'bar',
   data:{
-    labels:Array.from({length:20},(_,i)=>'#'+(i+1)),
+    labels:[],
     datasets:[{
       data:qData,
-      backgroundColor:qData.map(v=>v>80?'rgba(16,185,129,.7)':v>65?'rgba(245,158,11,.7)':'rgba(239,68,68,.7)'),
+      backgroundColor:[],
       borderRadius:4
     }]
   },
@@ -140,13 +147,24 @@ function drawBbox(bbox, label, conf) {
   if(!bbox) return;
   const scaleX = w/640, scaleY = h/480;
   const x=bbox.x*scaleX, y=bbox.y*scaleY, bw=bbox.w*scaleX, bh=bbox.h*scaleY;
-  ctx.strokeStyle = '#06b6d4'; ctx.lineWidth = 2;
+  // decide color by label semantics (kasar -> red, halus -> green)
+  const key = (label||'').toString().toLowerCase();
+  let stroke = '#06b6d4', fillBg = 'rgba(6,182,212,.85)';
+  if (/kasar|batuan|rock|coarse|rough/.test(key)) {
+    stroke = '#ef4444'; fillBg = 'rgba(239,68,68,0.9)';
+  } else if (/halus|optimal|lembab|ideal|soft|fine/.test(key)) {
+    stroke = '#10b981'; fillBg = 'rgba(16,185,129,0.9)';
+  }
+  ctx.strokeStyle = stroke; ctx.lineWidth = Math.max(2, Math.round(Math.min(w,h)/300));
   ctx.strokeRect(x,y,bw,bh);
   // Label bg
-  ctx.fillStyle='rgba(6,182,212,.85)';
-  ctx.fillRect(x,y-22,bw,22);
-  ctx.fillStyle='#fff'; ctx.font='bold 12px DM Mono, monospace';
+  ctx.fillStyle = fillBg;
+  const lblH = 22; ctx.fillRect(x,y-lblH,bw,lblH);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 12px DM Mono, monospace';
   ctx.fillText(`${label} ${(conf*100).toFixed(0)}%`, x+6, y-6);
+  // also color main label text in UI
+  const mlLabelEl = document.getElementById('mlLabel');
+  if (mlLabelEl) mlLabelEl.style.color = stroke;
 }
 
 function fetchML() {
@@ -163,14 +181,68 @@ function fetchML() {
 
     // Update chart
     const newVal = d.quality_score;
+    chartQ.data.labels.push('');
     chartQ.data.datasets[0].data.push(Math.round(newVal));
-    chartQ.data.datasets[0].data.shift();
-    chartQ.data.datasets[0].backgroundColor = chartQ.data.datasets[0].data.map(v=>
-      v>80?'rgba(16,185,129,.7)':v>65?'rgba(245,158,11,.7)':'rgba(239,68,68,.7)');
+    chartQ.data.datasets[0].backgroundColor.push(
+      newVal>80?'rgba(16,185,129,.7)':newVal>65?'rgba(245,158,11,.7)':'rgba(239,68,68,.7)');
+    if(chartQ.data.datasets[0].data.length>20) {
+      chartQ.data.labels.shift();
+      chartQ.data.datasets[0].data.shift();
+      chartQ.data.datasets[0].backgroundColor.shift();
+    }
     chartQ.update('none');
-  });
+  }).catch(e=>console.error('ML fetch error',e));
 }
 fetchML();
-setInterval(fetchML, 2000);
+setInterval(fetchML, 500);
+
+// show video placeholder until stream loads
+const videoEl = document.getElementById('videoStream');
+videoEl.addEventListener('load', ()=>{
+  document.getElementById('videoPlaceholder').style.display='none';
+  videoEl.style.display='block';
+});
+
+// track current camera state to send explicit enable/disable
+let currentCamEnabled = false;
+
+// update UI and state
+async function setCamState(enabled) {
+  currentCamEnabled = !!enabled;
+  const btn = document.getElementById('camToggleBtn');
+  const live = document.getElementById('liveBadge');
+  if (enabled) {
+    btn.textContent = 'Stop Camera';
+    live.className = 'badge-pill badge-danger';
+    live.innerHTML = '<span class="live-blink" style="display:inline-block;margin-right:6px;"></span> LIVE';
+    document.getElementById('videoPlaceholder').style.display='none';
+    document.getElementById('videoStream').style.display='block';
+  } else {
+    btn.textContent = 'Start Camera';
+    live.className = 'badge-pill badge-muted';
+    live.textContent = 'OFF';
+    document.getElementById('videoPlaceholder').style.display='flex';
+    document.getElementById('videoStream').style.display='none';
+  }
+}
+
+// camera toggle handling — send explicit enabled flag
+document.getElementById('camToggleBtn').addEventListener('click', async ()=>{
+  try {
+    const desired = !currentCamEnabled;
+    const res = await fetch('/ml/camera/toggle', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({enabled: desired})
+    });
+    const j = await res.json();
+    if (j.enabled !== undefined) setCamState(j.enabled);
+  } catch (e) { console.error('toggle error', e); }
+});
+
+// init camera status
+fetch('/ml/camera/status').then(r=>r.json()).then(j=>{
+  if (j.enabled !== undefined) setCamState(j.enabled);
+}).catch(()=>{});
 </script>
 {% endblock %}

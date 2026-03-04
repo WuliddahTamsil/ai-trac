@@ -79,22 +79,21 @@ def notifications():
 
 @api_bp.route('/ml/detection')
 def ml_detection():
-    classes = ['Tanah Kering', 'Tanah Lembab', 'Tanah Optimal', 'Gulma Terdeteksi']
-    weights = [0.15, 0.25, 0.45, 0.15]
-    label = random.choices(classes, weights)[0]
-    return jsonify({
-        'label': label,
-        'confidence': round(random.uniform(0.82, 0.98), 3),
-        'quality_score': round(random.uniform(70, 95), 1),
-        'total_detections': random.randint(1420, 1500),
-        'avg_quality': round(random.uniform(80, 90), 1),
-        'bbox': {
-            'x': random.randint(50, 200),
-            'y': random.randint(50, 150),
-            'w': random.randint(100, 200),
-            'h': random.randint(80, 160)
-        }
-    })
+    # return the latest inference info stored by ml_engine
+    try:
+        from .. import ml_engine
+        _, info = ml_engine.get_current()
+        # ensure numeric values are serializable
+        info['confidence'] = float(info.get('confidence', 0.0))
+        info['quality_score'] = float(info.get('quality_score', 0.0))
+        info['avg_quality'] = float(info.get('avg_quality', 0.0))
+        info['total_detections'] = int(info.get('total_detections', 0))
+        # if bbox missing ensure default
+        info.setdefault('bbox', {'x':0,'y':0,'w':0,'h':0})
+        return jsonify(info)
+    except Exception as e:
+        # fallback to dummy if engine not available
+        return jsonify({'label':'--','confidence':0,'quality_score':0,'total_detections':0,'avg_quality':0,'bbox':{'x':0,'y':0,'w':0,'h':0}})
 
 @api_bp.route('/maintenance/health')
 def maintenance_health():

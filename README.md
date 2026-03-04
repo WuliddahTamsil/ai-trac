@@ -72,3 +72,43 @@ dihubungkan ke ESP32 via:
 | GPS NEO-6M TX | GPIO17 |
 | US Depan TRIG/ECHO | GPIO32/33 |
 | FlySky iBUS | GPIO23 |
+
+## WiFi Scanning Proxy
+
+Untuk menampilkan daftar jaringan Wi-Fi di UI berbasis Flask, server
+menjalankan _proxy_ yang meneruskan permintaan `GET /api/wifi/scan` ke
+ESP32 dengan alamat yang dapat dikonfigurasi.
+
+Secara default ESP32 berada pada `http://192.168.4.1` ketika Anda tersambung
+ke jaringan AP-nya (`AI-TRAC-AP`). Flask membaca variabel lingkungan
+`ESP_WIFI_HOST` untuk menentukan alamat ini; contoh:
+
+```powershell
+$env:ESP_WIFI_HOST='http://192.168.4.1'
+python run.py
+```
+
+Setelah itu klik tombol **Scan** pada halaman kontrol — server akan memanggil
+ESP dan mengembalikan daftar SSID, sehingga browser tidak langsung
+menghubungi perangkat (menghindari masalah CORS).
+
+Jika ESP bergabung ke jaringan lain dan alamatnya berubah, cukup atur
+`ESP_WIFI_HOST` ke IP baru (mis. `http://192.168.1.25`).
+
+`/api/wifi/scan` juga berguna saat Anda berada pada jaringan yang berbeda:
+klien web selalu memanggil alamat Flask, dan Flask yang menanyakan ESP di
+belakang layar.
+
+### ESP command polling
+
+Selain telemetry, firmware dapat memanggil:
+
+```
+GET /api/command
+```
+
+Endpoint ini mengembalikan JSON sederhana dengan mode kontrol saat ini
+(manual/auto/line) dan nilai `throttle`/`steering` (diterapkan hanya bila
+remote tidak aktif). ESP32 akan memeriksa URL tersebut secara berkala agar
+mode web tetap sinkron tanpa harus membuka WebSocket atau menunggu
+perintah melalui iBus.
