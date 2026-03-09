@@ -7,274 +7,225 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
-/* Theme-aware variables: default is light (set on <html data-theme>) */
-:root { --c-mono: 'JetBrains Mono', monospace; --c-head: 'Syne', sans-serif; --radius: 10px; }
+:root { --c-mono:'JetBrains Mono',monospace; --c-head:'Syne',sans-serif; --radius:10px; }
 
-/* Light theme (default) */
 [data-theme="light"] {
-  --c-bg:       #f6f8fb;
-  --c-surface:  #ffffff;
-  --c-surface2: #f4f6fa;
-  --c-border:   #e6eef8;
-  --c-accent:   #0ea5e9;
-  --c-accent2:  #00a3d7;
-  --c-green:    #059669;
-  --c-yellow:   #d97706;
-  --c-red:      #dc2626;
-  --c-text:     #0f172a;
-  --c-muted:    #6b7280;
-  --glow-blue:  0 0 18px rgba(14,165,233,0.08);
-  --glow-green: 0 0 16px rgba(5,150,105,0.08);
-  --glow-red:   0 0 16px rgba(220,38,38,0.08);
+  --c-bg:#f6f8fb; --c-surface:#ffffff; --c-surface2:#f4f6fa;
+  --c-border:#e6eef8; --c-accent:#0ea5e9; --c-accent2:#00a3d7;
+  --c-green:#059669; --c-yellow:#d97706; --c-red:#dc2626;
+  --c-text:#0f172a; --c-muted:#6b7280;
+  --glow-blue:0 0 18px rgba(14,165,233,0.08);
+  --glow-green:0 0 16px rgba(5,150,105,0.08);
+  --glow-red:0 0 16px rgba(220,38,38,0.08);
 }
-
-/* Dark theme */
 [data-theme="dark"] {
-  --c-bg:       #0a0e1a;
-  --c-surface:  #111827;
-  --c-surface2: #1a2235;
-  --c-border:   #1e2d45;
-  --c-accent:   #00d4ff;
-  --c-accent2:  #0ea5e9;
-  --c-green:    #10ffa0;
-  --c-yellow:   #fbbf24;
-  --c-red:      #ff4444;
-  --c-text:     #e2e8f0;
-  --c-muted:    #64748b;
-  --glow-blue:  0 0 20px rgba(0,212,255,0.15);
-  --glow-green: 0 0 20px rgba(16,255,160,0.15);
-  --glow-red:   0 0 20px rgba(255,68,68,0.2);
+  --c-bg:#0a0e1a; --c-surface:#111827; --c-surface2:#1a2235;
+  --c-border:#1e2d45; --c-accent:#00d4ff; --c-accent2:#0ea5e9;
+  --c-green:#10ffa0; --c-yellow:#fbbf24; --c-red:#ff4444;
+  --c-text:#e2e8f0; --c-muted:#64748b;
+  --glow-blue:0 0 20px rgba(0,212,255,0.15);
+  --glow-green:0 0 20px rgba(16,255,160,0.15);
+  --glow-red:0 0 20px rgba(255,68,68,0.2);
 }
 
-*, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 
-/* Override base cards for dark industrial theme */
-.card {
-  background: var(--c-surface) !important;
-  border: 1px solid var(--c-border) !important;
-  border-radius: var(--radius) !important;
-  overflow: hidden;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  animation: fadeInUp 0.4s ease both;
-}
-.card:hover { border-color: var(--c-accent) !important; box-shadow: var(--glow-blue); }
-.card-header {
-  padding: 14px 18px !important;
-  border-bottom: 1px solid var(--c-border) !important;
-  background: rgba(0,212,255,0.03) !important;
-  display: flex; align-items: center; justify-content: space-between;
-}
-.card-body { padding: 16px 18px !important; }
-.card-title {
-  font-family: var(--c-head) !important;
-  font-size: 11px !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.12em !important;
-  text-transform: uppercase !important;
-  color: var(--c-accent) !important;
-  display: flex; align-items: center; gap: 8px;
-}
+.card{background:var(--c-surface)!important;border:1px solid var(--c-border)!important;border-radius:var(--radius)!important;overflow:hidden;transition:border-color 0.2s,box-shadow 0.2s;animation:fadeInUp 0.4s ease both;}
+.card:hover{border-color:var(--c-accent)!important;box-shadow:var(--glow-blue);}
+.card-header{padding:14px 18px!important;border-bottom:1px solid var(--c-border)!important;background:rgba(0,212,255,0.03)!important;display:flex;align-items:center;justify-content:space-between;}
+.card-body{padding:16px 18px!important;}
+.card-title{font-family:var(--c-head)!important;font-size:11px!important;font-weight:800!important;letter-spacing:0.12em!important;text-transform:uppercase!important;color:var(--c-accent)!important;display:flex;align-items:center;gap:8px;}
 
-@keyframes fadeInUp {
-  from { opacity:0; transform:translateY(10px); }
-  to   { opacity:1; transform:translateY(0); }
-}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.card:nth-child(1){animation-delay:0.05s;}.card:nth-child(2){animation-delay:0.10s;}.card:nth-child(3){animation-delay:0.15s;}
 
-/* Stagger card animations */
-.card:nth-child(1) { animation-delay: 0.05s; }
-.card:nth-child(2) { animation-delay: 0.10s; }
-.card:nth-child(3) { animation-delay: 0.15s; }
+.cg-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;}
+.cg-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.cg-auto{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:20px;}
+@media(max-width:1000px){.cg-3{grid-template-columns:1fr 1fr;}}
+@media(max-width:700px){.cg-3,.cg-2{grid-template-columns:1fr;}}
 
-/* ── Grids ──────────────────────────────────────────────── */
-.cg-3   { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:20px; }
-.cg-2   { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
-.cg-auto{ display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; margin-bottom:20px; }
-@media(max-width:1000px){ .cg-3{ grid-template-columns:1fr 1fr; } }
-@media(max-width:700px) { .cg-3,.cg-2{ grid-template-columns:1fr; } }
+/* ── Mode Banner ── */
+#modeBanner{display:flex;align-items:center;gap:12px;padding:14px 20px;border-radius:var(--radius);margin-bottom:20px;font-family:var(--c-head);font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;transition:all 0.35s ease;border:1px solid;animation:fadeInUp 0.3s ease;}
+#modeBanner.manual{background:rgba(0,212,255,0.07);color:var(--c-accent);border-color:rgba(0,212,255,0.35);}
+#modeBanner.auto{background:rgba(16,255,160,0.07);color:var(--c-green);border-color:rgba(16,255,160,0.35);}
+#modeBanner.line{background:rgba(251,191,36,0.07);color:var(--c-yellow);border-color:rgba(251,191,36,0.35);}
+#modeBanner.estop{background:rgba(255,68,68,0.1);color:var(--c-red);border-color:rgba(255,68,68,0.45);animation:blink-banner 0.5s infinite;}
+@keyframes blink-banner{0%,100%{opacity:1}50%{opacity:0.55}}
 
-/* ── Mode Banner ────────────────────────────────────────── */
-#modeBanner {
-  display:flex; align-items:center; gap:12px;
-  padding:14px 20px; border-radius:var(--radius);
-  margin-bottom:20px; font-family:var(--c-head);
-  font-size:13px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase;
-  transition:all 0.35s ease; border:1px solid;
-  animation: fadeInUp 0.3s ease;
-}
-#modeBanner.manual { background:rgba(0,212,255,0.07);  color:var(--c-accent);  border-color:rgba(0,212,255,0.35); }
-#modeBanner.auto   { background:rgba(16,255,160,0.07); color:var(--c-green);   border-color:rgba(16,255,160,0.35); }
-#modeBanner.line   { background:rgba(251,191,36,0.07); color:var(--c-yellow);  border-color:rgba(251,191,36,0.35); }
-#modeBanner.estop  { background:rgba(255,68,68,0.1);   color:var(--c-red);     border-color:rgba(255,68,68,0.45); animation:blink-banner 0.5s infinite; }
-@keyframes blink-banner{ 0%,100%{opacity:1} 50%{opacity:0.55} }
+.bdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;animation:pulse-dot 2s ease infinite;}
+.manual .bdot{background:var(--c-accent);box-shadow:0 0 6px var(--c-accent);}
+.auto .bdot{background:var(--c-green);box-shadow:0 0 6px var(--c-green);}
+.line .bdot{background:var(--c-yellow);box-shadow:0 0 6px var(--c-yellow);}
+.estop .bdot{background:var(--c-red);box-shadow:0 0 6px var(--c-red);}
+@keyframes pulse-dot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:0.6}}
 
-.bdot {
-  width:8px; height:8px; border-radius:50%; flex-shrink:0;
-  animation:pulse-dot 2s ease infinite;
-}
-.manual .bdot { background:var(--c-accent); box-shadow:0 0 6px var(--c-accent); }
-.auto   .bdot { background:var(--c-green);  box-shadow:0 0 6px var(--c-green); }
-.line   .bdot { background:var(--c-yellow); box-shadow:0 0 6px var(--c-yellow); }
-.estop  .bdot { background:var(--c-red);    box-shadow:0 0 6px var(--c-red); }
-@keyframes pulse-dot{ 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.4);opacity:0.6} }
+/* ── ESP32 connection status ── */
+#esp32Status{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:var(--radius);margin-bottom:16px;font-family:var(--c-head);font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;transition:all 0.3s;border:1px solid;}
+#esp32Status.online{background:rgba(16,255,160,0.07);color:var(--c-green);border-color:rgba(16,255,160,0.3);}
+#esp32Status.offline{background:rgba(255,68,68,0.07);color:var(--c-red);border-color:rgba(255,68,68,0.3);animation:blink-banner 1s infinite;}
+#esp32Status.connecting{background:rgba(251,191,36,0.07);color:var(--c-yellow);border-color:rgba(251,191,36,0.3);}
+.esp-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.online .esp-dot{background:var(--c-green);box-shadow:0 0 5px var(--c-green);}
+.offline .esp-dot{background:var(--c-red);}
+.connecting .esp-dot{background:var(--c-yellow);animation:pulse-dot 0.8s ease infinite;}
 
-/* ── Stat rows ──────────────────────────────────────────── */
-.sr {
-  display:flex; justify-content:space-between; align-items:center;
-  padding:9px 0; border-bottom:1px solid var(--c-border); font-size:12px;
-}
-.sr:last-child { border-bottom:none; }
-.sl { color:var(--c-muted); font-weight:700; letter-spacing:0.05em; text-transform:uppercase; font-size:10px; font-family:var(--c-head); }
-.sv { font-family:var(--c-mono); color:var(--c-text); font-size:12px; font-weight:600; }
+/* ── Stat rows ── */
+.sr{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--c-border);font-size:12px;}
+.sr:last-child{border-bottom:none;}
+.sl{color:var(--c-muted);font-weight:700;letter-spacing:0.05em;text-transform:uppercase;font-size:10px;font-family:var(--c-head);}
+.sv{font-family:var(--c-mono);color:var(--c-text);font-size:12px;font-weight:600;}
 
-/* ── Badges ─────────────────────────────────────────────── */
-.badge {
-  display:inline-flex; align-items:center; gap:5px;
-  padding:3px 10px; border-radius:20px; font-size:10px;
-  font-weight:800; letter-spacing:0.07em; text-transform:uppercase; font-family:var(--c-head);
-}
-.badge::before { content:''; width:5px; height:5px; border-radius:50%; flex-shrink:0; }
-.b-ok   { background:rgba(16,255,160,0.12); color:var(--c-green);  border:1px solid rgba(16,255,160,0.3); }
-.b-ok::before  { background:var(--c-green);  animation:blink-dot 2s infinite; }
-.b-warn { background:rgba(251,191,36,0.12); color:var(--c-yellow); border:1px solid rgba(251,191,36,0.3); }
-.b-warn::before{ background:var(--c-yellow); animation:blink-dot 1.5s infinite; }
-.b-err  { background:rgba(255,68,68,0.12);  color:var(--c-red);    border:1px solid rgba(255,68,68,0.3); }
-.b-err::before { background:var(--c-red); }
-.b-info { background:rgba(0,212,255,0.12);  color:var(--c-accent); border:1px solid rgba(0,212,255,0.3); }
-.b-info::before{ background:var(--c-accent); }
-@keyframes blink-dot{ 0%,100%{opacity:1} 50%{opacity:0.25} }
+/* ── Badges ── */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;font-family:var(--c-head);}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.b-ok{background:rgba(16,255,160,0.12);color:var(--c-green);border:1px solid rgba(16,255,160,0.3);}
+.b-ok::before{background:var(--c-green);animation:blink-dot 2s infinite;}
+.b-warn{background:rgba(251,191,36,0.12);color:var(--c-yellow);border:1px solid rgba(251,191,36,0.3);}
+.b-warn::before{background:var(--c-yellow);animation:blink-dot 1.5s infinite;}
+.b-err{background:rgba(255,68,68,0.12);color:var(--c-red);border:1px solid rgba(255,68,68,0.3);}
+.b-err::before{background:var(--c-red);}
+.b-info{background:rgba(0,212,255,0.12);color:var(--c-accent);border:1px solid rgba(0,212,255,0.3);}
+.b-info::before{background:var(--c-accent);}
+@keyframes blink-dot{0%,100%{opacity:1}50%{opacity:0.25}}
 
-/* ── Progress bars ──────────────────────────────────────── */
-.prog-wrap { margin-top:10px; }
-.prog-head { display:flex; justify-content:space-between; font-size:10px; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; color:var(--c-muted); margin-bottom:5px; font-family:var(--c-head); }
-.prog-track { height:5px; background:var(--c-border); border-radius:3px; overflow:hidden; }
-.prog-fill  { height:100%; border-radius:3px; transition:width 0.3s cubic-bezier(.4,0,.2,1); }
-.pthr { background:linear-gradient(90deg,#00d4ff,#0ea5e9); box-shadow:0 0 8px rgba(0,212,255,0.45); }
-.pstr { background:linear-gradient(90deg,#fbbf24,#f59e0b); box-shadow:0 0 8px rgba(251,191,36,0.4); }
+/* ── Progress bars ── */
+.prog-wrap{margin-top:10px;}
+.prog-head{display:flex;justify-content:space-between;font-size:10px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:var(--c-muted);margin-bottom:5px;font-family:var(--c-head);}
+.prog-track{height:5px;background:var(--c-border);border-radius:3px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:3px;transition:width 0.3s cubic-bezier(.4,0,.2,1);}
+.pthr{background:linear-gradient(90deg,#00d4ff,#0ea5e9);box-shadow:0 0 8px rgba(0,212,255,0.45);}
+.pstr{background:linear-gradient(90deg,#fbbf24,#f59e0b);box-shadow:0 0 8px rgba(251,191,36,0.4);}
 
-/* ── Sensor bars ────────────────────────────────────────── */
-.senst { height:4px; background:var(--c-border); border-radius:2px; overflow:hidden; margin-top:5px; }
-.sensf { height:100%; border-radius:2px; transition:width 0.3s,background 0.3s; }
-.s-ok   { background:var(--c-green); }
-.s-warn { background:var(--c-yellow); }
-.s-crit { background:var(--c-red); box-shadow:0 0 8px var(--c-red); }
+/* ── Sensor bars ── */
+.senst{height:4px;background:var(--c-border);border-radius:2px;overflow:hidden;margin-top:5px;}
+.sensf{height:100%;border-radius:2px;transition:width 0.3s,background 0.3s;}
+.s-ok{background:var(--c-green);}
+.s-warn{background:var(--c-yellow);}
+.s-crit{background:var(--c-red);box-shadow:0 0 8px var(--c-red);}
 
-/* ── Buttons ─────────────────────────────────────────────── */
-.btn {
-  display:inline-flex; align-items:center; gap:6px; padding:8px 14px;
-  border-radius:7px; cursor:pointer; font-size:11px; font-weight:800;
-  letter-spacing:0.06em; text-transform:uppercase; font-family:var(--c-head);
-  transition:all 0.18s ease; border:1px solid; background:transparent; white-space:nowrap;
-}
-.btn:disabled { opacity:0.35; cursor:not-allowed; }
-.btn-ghost { border-color:var(--c-border); color:var(--c-muted); }
-.btn-ghost:hover { border-color:var(--c-accent); color:var(--c-accent); background:rgba(0,212,255,0.07); }
-.btn-ghost.active { border-color:var(--c-accent); color:var(--c-accent); background:rgba(0,212,255,0.12); }
-.btn-blue  { border-color:rgba(0,212,255,0.4); color:var(--c-accent);  background:rgba(0,212,255,0.08); }
-.btn-blue:hover  { background:rgba(0,212,255,0.18); box-shadow:var(--glow-blue); transform:translateY(-1px); }
-.btn-blue.active { background:rgba(0,212,255,0.2); border-color:var(--c-accent); }
-.btn-green { border-color:rgba(16,255,160,0.4); color:var(--c-green);  background:rgba(16,255,160,0.08); }
-.btn-green:hover { background:rgba(16,255,160,0.18); box-shadow:var(--glow-green); transform:translateY(-1px); }
-.btn-yellow{ border-color:rgba(251,191,36,0.4); color:var(--c-yellow); background:rgba(251,191,36,0.08); }
-.btn-yellow:hover{ background:rgba(251,191,36,0.18); transform:translateY(-1px); }
-.btn-yellow.active{ background:rgba(251,191,36,0.2); border-color:var(--c-yellow); }
-.btn-red   { border-color:rgba(255,68,68,0.5); color:var(--c-red); background:rgba(255,68,68,0.1); }
-.btn-red:hover   { background:rgba(255,68,68,0.22); box-shadow:var(--glow-red); transform:translateY(-1px); }
-.btn-estop {
-  border-color:var(--c-red); color:#fff;
-  background:linear-gradient(135deg,#ff2222,#cc0000);
-  box-shadow:0 0 16px rgba(255,44,44,0.35); font-size:12px; padding:10px 20px;
-}
-.btn-estop:hover { box-shadow:0 0 28px rgba(255,44,44,0.55); transform:translateY(-2px); }
-.brow { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
-.brow .btn { flex:1; justify-content:center; }
-.mgroup { display:flex; gap:6px; margin-top:14px; }
-.mgroup .btn { flex:1; justify-content:center; padding:10px 8px; }
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:7px;cursor:pointer;font-size:11px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;font-family:var(--c-head);transition:all 0.18s ease;border:1px solid;background:transparent;white-space:nowrap;}
+.btn:disabled{opacity:0.35;cursor:not-allowed;}
+.btn-ghost{border-color:var(--c-border);color:var(--c-muted);}
+.btn-ghost:hover{border-color:var(--c-accent);color:var(--c-accent);background:rgba(0,212,255,0.07);}
+.btn-ghost.active{border-color:var(--c-accent);color:var(--c-accent);background:rgba(0,212,255,0.12);}
+.btn-blue{border-color:rgba(0,212,255,0.4);color:var(--c-accent);background:rgba(0,212,255,0.08);}
+.btn-blue:hover{background:rgba(0,212,255,0.18);box-shadow:var(--glow-blue);transform:translateY(-1px);}
+.btn-blue.active{background:rgba(0,212,255,0.2);border-color:var(--c-accent);}
+.btn-green{border-color:rgba(16,255,160,0.4);color:var(--c-green);background:rgba(16,255,160,0.08);}
+.btn-green:hover{background:rgba(16,255,160,0.18);box-shadow:var(--glow-green);transform:translateY(-1px);}
+.btn-yellow{border-color:rgba(251,191,36,0.4);color:var(--c-yellow);background:rgba(251,191,36,0.08);}
+.btn-yellow:hover{background:rgba(251,191,36,0.18);transform:translateY(-1px);}
+.btn-yellow.active{background:rgba(251,191,36,0.2);border-color:var(--c-yellow);}
+.btn-red{border-color:rgba(255,68,68,0.5);color:var(--c-red);background:rgba(255,68,68,0.1);}
+.btn-red:hover{background:rgba(255,68,68,0.22);box-shadow:var(--glow-red);transform:translateY(-1px);}
+.btn-estop{border-color:var(--c-red);color:#fff;background:linear-gradient(135deg,#ff2222,#cc0000);box-shadow:0 0 16px rgba(255,44,44,0.35);font-size:12px;padding:10px 20px;}
+.btn-estop:hover{box-shadow:0 0 28px rgba(255,44,44,0.55);transform:translateY(-2px);}
+.brow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.brow .btn{flex:1;justify-content:center;}
+.mgroup{display:flex;gap:6px;margin-top:14px;}
+.mgroup .btn{flex:1;justify-content:center;padding:10px 8px;}
 
-/* ── Map ─────────────────────────────────────────────────── */
-#map {
-  width:100%; height:420px; border-radius:8px; z-index:1;
-  border:1px solid var(--c-border);
-  filter:saturate(0.65) brightness(0.82) contrast(1.05);
-}
-.map-hint { font-size:10px; color:var(--c-muted); text-align:center; padding:5px 0 8px; font-family:var(--c-mono); }
-.map-strip {
-  display:flex; gap:20px; padding:8px 14px; background:var(--c-surface2);
-  border-radius:7px; border:1px solid var(--c-border); margin-top:8px;
-  font-family:var(--c-mono); font-size:11px; flex-wrap:wrap; align-items:center;
-}
-.map-strip .ms-lbl { color:var(--c-muted); font-size:9px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; font-family:var(--c-head); margin-bottom:2px; }
-.map-strip .ms-val { color:var(--c-accent); font-weight:700; }
+/* ── Map ── */
+#map{width:100%;height:420px;border-radius:8px;z-index:1;border:1px solid var(--c-border);filter:saturate(0.65) brightness(0.82) contrast(1.05);}
+.map-hint{font-size:10px;color:var(--c-muted);text-align:center;padding:5px 0 8px;font-family:var(--c-mono);}
+.map-strip{display:flex;gap:20px;padding:8px 14px;background:var(--c-surface2);border-radius:7px;border:1px solid var(--c-border);margin-top:8px;font-family:var(--c-mono);font-size:11px;flex-wrap:wrap;align-items:center;}
+.map-strip .ms-lbl{color:var(--c-muted);font-size:9px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;font-family:var(--c-head);margin-bottom:2px;}
+.map-strip .ms-val{color:var(--c-accent);font-weight:700;}
 
-/* ── Waypoint list ───────────────────────────────────────── */
-.wp-list { max-height:240px; overflow-y:auto; margin-top:10px; scrollbar-width:thin; scrollbar-color:var(--c-border) transparent; }
-.wp-item {
-  display:flex; align-items:center; gap:10px; padding:9px 10px;
-  border-radius:7px; margin-bottom:5px; background:rgba(0,212,255,0.03);
-  border:1px solid var(--c-border); transition:all 0.15s;
-}
-.wp-item:hover { border-color:rgba(0,212,255,0.3); background:rgba(0,212,255,0.07); }
-.wp-num {
-  width:22px; height:22px; border-radius:50%; flex-shrink:0;
-  background:rgba(251,191,36,0.15); border:1px solid rgba(251,191,36,0.4);
-  color:var(--c-yellow); font-size:10px; font-weight:800;
-  display:flex; align-items:center; justify-content:center; font-family:var(--c-mono);
-}
-.wp-info { flex:1; min-width:0; }
-.wp-name { font-weight:700; font-size:12px; color:var(--c-text); font-family:var(--c-head); }
-.wp-coord { font-size:10px; color:var(--c-muted); font-family:var(--c-mono); margin-top:1px; }
-.wp-del { padding:4px 7px; border-radius:5px; background:rgba(255,68,68,0.1); border:1px solid rgba(255,68,68,0.2); color:var(--c-red); cursor:pointer; font-size:10px; font-weight:700; transition:all 0.15s; flex-shrink:0; }
-.wp-del:hover { background:var(--c-red); color:#fff; }
+/* ── Waypoint list ── */
+.wp-list{max-height:240px;overflow-y:auto;margin-top:10px;scrollbar-width:thin;scrollbar-color:var(--c-border) transparent;}
+.wp-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:7px;margin-bottom:5px;background:rgba(0,212,255,0.03);border:1px solid var(--c-border);transition:all 0.15s;}
+.wp-item:hover{border-color:rgba(0,212,255,0.3);background:rgba(0,212,255,0.07);}
+.wp-num{width:22px;height:22px;border-radius:50%;flex-shrink:0;background:rgba(251,191,36,0.15);border:1px solid rgba(251,191,36,0.4);color:var(--c-yellow);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;font-family:var(--c-mono);}
+.wp-info{flex:1;min-width:0;}
+.wp-name{font-weight:700;font-size:12px;color:var(--c-text);font-family:var(--c-head);}
+.wp-coord{font-size:10px;color:var(--c-muted);font-family:var(--c-mono);margin-top:1px;}
+.wp-del{padding:4px 7px;border-radius:5px;background:rgba(255,68,68,0.1);border:1px solid rgba(255,68,68,0.2);color:var(--c-red);cursor:pointer;font-size:10px;font-weight:700;transition:all 0.15s;flex-shrink:0;}
+.wp-del:hover{background:var(--c-red);color:#fff;}
 
-/* ── Forms ───────────────────────────────────────────────── */
-.frow { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-.fg { margin-bottom:8px; }
-.fg label { display:block; font-size:9px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:var(--c-muted); margin-bottom:4px; font-family:var(--c-head); }
-.fg input, .fg select {
-  width:100%; padding:8px 10px; background:var(--c-surface2); border:1px solid var(--c-border);
-  border-radius:6px; color:var(--c-text); font-family:var(--c-mono); font-size:12px;
-  transition:border-color 0.15s, box-shadow 0.15s;
-}
-.fg input:focus, .fg select:focus { outline:none; border-color:var(--c-accent); box-shadow:0 0 0 2px rgba(0,212,255,0.12); }
-.fg input::placeholder { color:var(--c-muted); font-size:11px; }
+/* ── Forms ── */
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.fg{margin-bottom:8px;}
+.fg label{display:block;font-size:9px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--c-muted);margin-bottom:4px;font-family:var(--c-head);}
+.fg input,.fg select{width:100%;padding:8px 10px;background:var(--c-surface2);border:1px solid var(--c-border);border-radius:6px;color:var(--c-text);font-family:var(--c-mono);font-size:12px;transition:border-color 0.15s,box-shadow 0.15s;}
+.fg input:focus,.fg select:focus{outline:none;border-color:var(--c-accent);box-shadow:0 0 0 2px rgba(0,212,255,0.12);}
+.fg input::placeholder{color:var(--c-muted);font-size:11px;}
 
-/* ── WiFi item ───────────────────────────────────────────── */
-.wifi-item { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:7px; margin-bottom:5px; background:var(--c-surface2); border:1px solid var(--c-border); }
-.wifi-bars { display:flex; gap:2px; align-items:flex-end; height:16px; }
-.wifi-bars span { width:3px; border-radius:1px; background:var(--c-border); }
-.wifi-bars span.lit { background:var(--c-green); }
-.wifi-ssid { font-size:12px; font-weight:700; color:var(--c-text); font-family:var(--c-head); }
-.wifi-meta { font-size:10px; color:var(--c-muted); font-family:var(--c-mono); margin-top:2px; }
+/* ── WiFi ── */
+.wifi-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:7px;margin-bottom:5px;background:var(--c-surface2);border:1px solid var(--c-border);}
+.wifi-bars{display:flex;gap:2px;align-items:flex-end;height:16px;}
+.wifi-bars span{width:3px;border-radius:1px;background:var(--c-border);}
+.wifi-bars span.lit{background:var(--c-green);}
+.wifi-ssid{font-size:12px;font-weight:700;color:var(--c-text);font-family:var(--c-head);}
+.wifi-meta{font-size:10px;color:var(--c-muted);font-family:var(--c-mono);margin-top:2px;}
+#wifiNetList{max-height:260px;overflow-y:auto;margin-top:10px;padding-right:4px;scrollbar-width:thin;scrollbar-color:var(--c-border) transparent;}
+#wifiNetList.wifi-expanded{max-height:60vh;}
 
-/* ── Range input ─────────────────────────────────────────── */
-input[type=range] { -webkit-appearance:none; width:100%; height:4px; background:var(--c-border); border-radius:2px; outline:none; }
-input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; height:14px; border-radius:50%; background:var(--c-accent); cursor:pointer; box-shadow:0 0 6px rgba(0,212,255,0.5); }
+/* ── Range ── */
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;background:var(--c-border);border-radius:2px;outline:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;border-radius:50%;background:var(--c-accent);cursor:pointer;box-shadow:0 0 6px rgba(0,212,255,0.5);}
 
-/* ── Connection banner ───────────────────────────────────── */
-#connBanner {
-  display:none; position:fixed; bottom:24px; right:24px; z-index:9999;
-  background:var(--c-red); color:#fff; padding:12px 20px; border-radius:10px;
-  font-weight:800; font-size:12px; box-shadow:var(--glow-red);
-  font-family:var(--c-head); letter-spacing:0.06em;
-  animation:slide-up 0.3s ease;
-}
-@keyframes slide-up{ from{transform:translateY(14px);opacity:0} to{transform:translateY(0);opacity:1} }
+/* ── Connection banner (toast) ── */
+#connBanner{display:none;position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--c-red);color:#fff;padding:12px 20px;border-radius:10px;font-weight:800;font-size:12px;box-shadow:var(--glow-red);font-family:var(--c-head);letter-spacing:0.06em;animation:slide-up 0.3s ease;}
+@keyframes slide-up{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
 
-/* ── Area pill ───────────────────────────────────────────── */
-.area-pill { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:20px; background:rgba(16,255,160,0.1); border:1px solid rgba(16,255,160,0.25); color:var(--c-green); font-family:var(--c-mono); font-size:11px; font-weight:700; margin-top:8px; }
+/* ── ESP32 config panel ── */
+#cfgPanel{background:var(--c-surface2);border:1px solid var(--c-border);border-radius:var(--radius);padding:14px 18px;margin-bottom:20px;animation:fadeInUp 0.3s ease;}
+#cfgPanel .cfg-title{font-family:var(--c-head);font-size:10px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--c-accent);margin-bottom:10px;}
+#cfgPanel .cfg-row{display:flex;gap:8px;align-items:flex-end;}
+#cfgPanel input{flex:1;padding:8px 10px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:6px;color:var(--c-text);font-family:var(--c-mono);font-size:12px;}
+#cfgPanel input:focus{outline:none;border-color:var(--c-accent);}
 
-/* ── Misc ────────────────────────────────────────────────── */
-.sec-lbl { font-family:var(--c-head); font-size:10px; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; color:var(--c-muted); margin-bottom:12px; margin-top:6px; display:flex; align-items:center; gap:10px; }
-.sec-lbl::after { content:''; flex:1; height:1px; background:var(--c-border); }
-.no-data { text-align:center; color:var(--c-muted); font-size:11px; padding:20px 0; font-family:var(--c-mono); }
-.mb { margin-bottom:20px; }
+/* ── Area pill ── */
+.area-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;background:rgba(16,255,160,0.1);border:1px solid rgba(16,255,160,0.25);color:var(--c-green);font-family:var(--c-mono);font-size:11px;font-weight:700;margin-top:8px;}
+
+/* ── Misc ── */
+.sec-lbl{font-family:var(--c-head);font-size:10px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:var(--c-muted);margin-bottom:12px;margin-top:6px;display:flex;align-items:center;gap:10px;}
+.sec-lbl::after{content:'';flex:1;height:1px;background:var(--c-border);}
+.no-data{text-align:center;color:var(--c-muted);font-size:11px;padding:20px 0;font-family:var(--c-mono);}
+.mb{margin-bottom:20px;}
+
+/* ── Sidebar toggle ── */
+#sidebarToggleBtn{position:fixed;bottom:24px;right:24px;z-index:10000;background:var(--c-accent);color:#000;border:none;border-radius:8px;width:48px;height:48px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,212,255,0.4);transition:all 0.25s ease;font-weight:800;opacity:0;pointer-events:none;}
+#sidebarToggleBtn.visible{opacity:1;pointer-events:auto;}
+#sidebarToggleBtn:hover{transform:scale(1.15);box-shadow:0 6px 24px rgba(0,212,255,0.6);}
+body.sidebar-hidden .cg-3:first-of-type,body.sidebar-hidden .cg-2:first-of-type,body.sidebar-hidden .cg-auto{display:none!important;}
 </style>
 {% endblock %}
 
 {% block content %}
 
+<!-- ── Connection Toast ─────────────────────────────────────── -->
 <div id="connBanner">⚠ ESP32 Connection Lost</div>
 
-<!-- ═══ MODE BANNER ════════════════════════════════════════ -->
+<!-- ── ESP32 Connection Status ─────────────────────────────── -->
+<div id="esp32Status" class="connecting">
+  <div class="esp-dot"></div>
+  <span id="esp32StatusText">Connecting to ESP32...</span>
+  <span style="margin-left:auto;font-family:var(--c-mono);font-size:10px;opacity:0.7;" id="esp32IPLabel">{{ esp32_ip }}</span>
+  <button class="btn btn-ghost" onclick="toggleCfgPanel()" style="padding:3px 10px;font-size:9px;margin-left:8px;">⚙ Config</button>
+</div>
+
+<!-- ── ESP32 IP Config Panel (hidden by default) ───────────── -->
+<div id="cfgPanel" style="display:none;">
+  <div class="cfg-title">⚙ ESP32 Connection Settings</div>
+  <div class="cfg-row">
+    <div style="flex:1;">
+      <label style="font-size:9px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--c-muted);font-family:var(--c-head);display:block;margin-bottom:4px;">ESP32 IP Address</label>
+      <input type="text" id="cfgIP" value="{{ esp32_ip }}" placeholder="192.168.4.1" />
+    </div>
+    <button class="btn btn-blue" onclick="applyESP32Config()" style="margin-bottom:0;padding:9px 16px;">Apply & Reconnect</button>
+    <button class="btn btn-ghost" onclick="toggleCfgPanel()" style="margin-bottom:0;padding:9px 12px;">✕</button>
+  </div>
+  <p style="font-size:10px;color:var(--c-muted);font-family:var(--c-mono);margin-top:8px;">
+    AP Mode (default): <strong style="color:var(--c-accent);">192.168.4.1</strong> &nbsp;·&nbsp;
+    STA Mode: check ESP32 serial monitor for assigned IP
+  </p>
+</div>
+
+<!-- ── MODE BANNER ─────────────────────────────────────────── -->
 <div id="modeBanner" class="manual">
   <div class="bdot"></div>
   <span style="font-size:11px;letter-spacing:0.1em;opacity:0.7;">CURRENT MODE:</span>
@@ -287,7 +238,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; h
   </div>
 </div>
 
-<!-- ═══ ROW 1: GPS · REMOTE · VEHICLE ══════════════════════ -->
+<!-- ═══ ROW 1: GPS · REMOTE · VEHICLE ════════════════════════ -->
 <div class="cg-3 mb">
 
   <!-- GPS -->
@@ -297,11 +248,11 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; h
       <div id="gpsBadge" class="badge b-warn">Searching</div>
     </div>
     <div class="card-body">
-      <div class="sr"><span class="sl">Latitude</span> <span class="sv" id="latitude">—</span></div>
-      <div class="sr"><span class="sl">Longitude</span><span class="sv" id="longitude">—</span></div>
+      <div class="sr"><span class="sl">Latitude</span>  <span class="sv" id="latitude">—</span></div>
+      <div class="sr"><span class="sl">Longitude</span> <span class="sv" id="longitude">—</span></div>
       <div class="sr"><span class="sl">Satellites</span><span class="sv" id="gpsSats">0 / 12</span></div>
-      <div class="sr"><span class="sl">Speed</span>    <span class="sv" id="speed">—</span></div>
-      <div class="sr"><span class="sl">Heading</span>  <span class="sv" id="heading">—</span></div>
+      <div class="sr"><span class="sl">Speed</span>     <span class="sv" id="speed">—</span></div>
+      <div class="sr"><span class="sl">Heading</span>   <span class="sv" id="heading">—</span></div>
       <div class="brow" style="margin-top:10px;">
         <button class="btn btn-ghost" onclick="toggleAutoFollow()" id="followBtn"><i class="bi bi-crosshair"></i> Follow</button>
         <button class="btn btn-blue" onclick="centerOnVehicle()"><i class="bi bi-record-circle"></i> Center</button>
@@ -313,7 +264,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; h
   <div class="card">
     <div class="card-header">
       <div class="card-title"><i class="bi bi-controller"></i> FlySky Remote</div>
-      <div id="remoteBadge" class="badge b-err">Disconnected</div>
+      <div id="remoteBadge" class="badge b-ok">✓ Connected</div>
     </div>
     <div class="card-body">
       <div class="sr"><span class="sl">Mode</span>  <span class="sv" id="remoteMode">—</span></div>
@@ -354,7 +305,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; h
 
 </div>
 
-<!-- ═══ ROW 2: SENSORS · WIFI · SYSTEM ═════════════════════ -->
+<!-- ═══ ROW 2: SENSORS · WIFI · SYSTEM ═══════════════════════ -->
 <div class="cg-3 mb">
 
   <!-- Ultrasonic -->
@@ -396,15 +347,18 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; h
       <div id="wifiBadge" class="badge b-warn">Checking</div>
     </div>
     <div class="card-body">
-      <div class="sr"><span class="sl">SSID</span>  <span class="sv" id="wSSID">—</span></div>
-      <div class="sr"><span class="sl">IP</span>    <span class="sv" id="wIP">—</span></div>
-      <div class="sr"><span class="sl">Mode</span>  <span class="sv" id="wMode">—</span></div>
-      <div class="sr"><span class="sl">RSSI</span>  <span class="sv" id="wRSSI">—</span></div>
+      <div class="sr"><span class="sl">SSID</span> <span class="sv" id="wSSID">—</span></div>
+      <div class="sr"><span class="sl">IP</span>   <span class="sv" id="wIP">—</span></div>
+      <div class="sr"><span class="sl">Mode</span> <span class="sv" id="wMode">—</span></div>
+      <div class="sr"><span class="sl">RSSI</span> <span class="sv" id="wRSSI">—</span></div>
       <div class="brow" style="margin-top:10px;">
         <button class="btn btn-blue" id="scanBtn" onclick="scanWiFi()"><i class="bi bi-search"></i> Scan</button>
         <button class="btn btn-yellow" onclick="resetWiFi()"><i class="bi bi-arrow-clockwise"></i> Reset</button>
+        <button class="btn btn-ghost" id="wifiExpandBtn" onclick="toggleWifiList()" title="Expand list" style="padding:6px 10px;">
+          <i class="bi bi-arrows-angle-expand"></i>
+        </button>
       </div>
-      <div id="wifiNetList" style="margin-top:10px;"></div>
+      <div id="wifiNetList"></div>
     </div>
   </div>
 
@@ -424,11 +378,11 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; h
 
 </div>
 
-<!-- ═══ ROW 3: MAP + WAYPOINTS ══════════════════════════════ -->
-<div class="cg-2 mb">
+<!-- ═══ ROW 3: MAP + WAYPOINTS ════════════════════════════════ -->
+<div class="cg-2 mb" id="mapRow">
 
   <!-- Map -->
-  <div class="card">
+  <div class="card" id="mapCard">
     <div class="card-header">
       <div class="card-title"><i class="bi bi-map"></i> Navigation Map</div>
       <div style="display:flex;gap:6px;">
@@ -436,34 +390,21 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; h
         <button class="btn btn-ghost" onclick="centerOnVehicle()" style="padding:5px 10px;font-size:10px;" title="Center"><i class="bi bi-record-circle"></i></button>
         <button class="btn btn-ghost" id="geoBtn" onclick="toggleGeofence()" style="padding:5px 10px;font-size:10px;" title="Geofence"><i class="bi bi-shield"></i></button>
         <button class="btn btn-ghost" onclick="buildCoverage()" style="padding:5px 10px;font-size:10px;" title="Coverage Path"><i class="bi bi-grid-3x3-gap"></i></button>
+        <button class="btn btn-ghost" id="toggleSidebarBtn" onclick="toggleSidebar()" style="padding:5px 10px;font-size:10px;" title="Hide Sidebar"><i class="bi bi-x-lg"></i></button>
       </div>
     </div>
     <div class="card-body">
-      <p class="map-hint"><i class="bi bi-mouse2"></i> Click anywhere on map to instantly add a waypoint</p>
+      <p class="map-hint"><i class="bi bi-mouse2"></i> Click on map to add waypoint (enabled in Line / Auto mode)</p>
       <div id="map"></div>
       <div class="map-strip">
-        <div>
-          <div class="ms-lbl">Field Area</div>
-          <div class="ms-val" id="mapArea">—</div>
-        </div>
-        <div>
-          <div class="ms-lbl">Waypoints</div>
-          <div class="ms-val" id="mapWPn">0</div>
-        </div>
-        <div>
-          <div class="ms-lbl">Coverage</div>
-          <div class="ms-val" id="mapPath">—</div>
-        </div>
-        <div>
-          <div class="ms-lbl">Geofence</div>
-          <div class="ms-val" id="mapGeo">Off</div>
-        </div>
+        <div><div class="ms-lbl">Field Area</div><div class="ms-val" id="mapArea">—</div></div>
+        <div><div class="ms-lbl">Waypoints</div><div class="ms-val" id="mapWPn">0</div></div>
+        <div><div class="ms-lbl">Coverage</div><div class="ms-val" id="mapPath">—</div></div>
+        <div><div class="ms-lbl">Geofence</div><div class="ms-val" id="mapGeo">Off</div></div>
       </div>
       <div id="areaWrap" style="display:none;margin-top:8px;">
         <div class="area-pill"><i class="bi bi-bounding-box"></i> <span id="areaLabel">—</span></div>
       </div>
-
-      <!-- Geofence controls (shown when active) -->
       <div id="geoPanel" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--c-border);">
         <div class="sec-lbl">Geofence Radius</div>
         <div style="display:flex;align-items:center;gap:10px;">
@@ -489,17 +430,15 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; h
         <div class="fg"><label>Latitude</label><input type="text" id="wpLat" placeholder="-6.5971" /></div>
         <div class="fg"><label>Longitude</label><input type="text" id="wpLng" placeholder="106.8060" /></div>
       </div>
-      <button class="btn btn-green" onclick="addWaypointForm()" style="width:100%;justify-content:center;padding:10px;">
+      <button class="btn btn-green" onclick="addWaypointForm()" id="btnAddWP" style="width:100%;justify-content:center;padding:10px;">
         <i class="bi bi-plus-circle-fill"></i> Add Waypoint
       </button>
-
       <div class="wp-list" id="wpList">
         <div class="no-data">Click on the map or enter coordinates above</div>
       </div>
-
       <div class="brow" style="margin-top:12px;">
         <button class="btn btn-ghost" onclick="clearWPs()"><i class="bi bi-trash"></i> Clear All</button>
-        <button class="btn btn-green" onclick="startNav()" style="flex:2;justify-content:center;">
+        <button class="btn btn-green" onclick="startNav()" id="btnStartNav" style="flex:2;justify-content:center;">
           <i class="bi bi-play-circle-fill"></i> Start Navigation
         </button>
       </div>
@@ -508,10 +447,13 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; h
 
 </div>
 
-<!-- ═══ ROW 4: MODE CARDS + TRACK ══════════════════════════ -->
+<button id="sidebarToggleBtn" onclick="toggleSidebar()" title="Show Sidebar">
+  <i class="bi bi-chevron-left"></i>
+</button>
+
+<!-- ═══ ROW 4: MODE CARDS + TRACK ════════════════════════════ -->
 <div class="cg-auto mb">
 
-  <!-- Autonomous nav -->
   <div class="card" id="autoCard" style="display:none;">
     <div class="card-header">
       <div class="card-title"><i class="bi bi-geo-alt-fill"></i> Autonomous Nav</div>
@@ -526,7 +468,6 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; h
     </div>
   </div>
 
-  <!-- Line follow -->
   <div class="card" id="lineCard" style="display:none;">
     <div class="card-header">
       <div class="card-title"><i class="bi bi-diagram-3-fill"></i> Line / Coverage</div>
@@ -541,7 +482,6 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; h
     </div>
   </div>
 
-  <!-- Track Recording -->
   <div class="card">
     <div class="card-header">
       <div class="card-title"><i class="bi bi-record-circle"></i> Track Recording</div>
@@ -552,10 +492,10 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; h
         <button class="btn btn-green" id="recBtn" onclick="toggleRecord()" style="flex:2;justify-content:center;">
           <i class="bi bi-circle-fill"></i> Start Recording
         </button>
-        <button class="btn btn-ghost" onclick="clearTrack()" title="Clear"><i class="bi bi-trash"></i></button>
+        <button class="btn btn-ghost" onclick="clearTrack()" title="Clear Track"><i class="bi bi-trash"></i></button>
         <button class="btn btn-ghost" onclick="exportTrack()" title="Export JSON"><i class="bi bi-download"></i></button>
-        <button class="btn btn-blue"  onclick="saveTrack()" title="Save to server"><i class="bi bi-save"></i></button>
-        <button class="btn btn-ghost" onclick="loadTrack()" title="Load from server"><i class="bi bi-upload"></i></button>
+        <button class="btn btn-blue"  onclick="saveTrack()" title="Save to ESP32"><i class="bi bi-save"></i></button>
+        <button class="btn btn-ghost" onclick="loadTrack()" title="Load from ESP32"><i class="bi bi-upload"></i></button>
       </div>
     </div>
   </div>
@@ -567,71 +507,69 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; h
 {% block extra_js %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
-// ═══════════════════════════════════════════════════════════
-//  AI-TRAC Control Mode — v3
-//  ✅ Real GPS from ESP32
-//  ✅ Browser geolocation for initial map position
-//  ✅ Click-to-add waypoints with instant line+polygon
-//  ✅ No dummy data
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
+//  AI-TRAC Control Mode — Flask + ESP32 Edition
+//
+//  Architecture:
+//    Browser  →  Flask (Python, this server)  →  ESP32 (HTTP proxy)
+//
+//  All fetch() calls go to Flask routes (same origin, no CORS needed).
+//  Flask then forwards them to the ESP32 via requests library.
+//  If ESP32 is unreachable, Flask returns {error, connected:false}.
+// ═══════════════════════════════════════════════════════════════════
 
-const API      = '/getData';
-const POLL_MS  = 500;
-const OBS_WARN = 30;   // cm
-const OBS_STOP = 15;   // cm
-const SENS_MAX = 400;  // cm
+// ── Tuning constants ──────────────────────────────────────────────
+const POLL_MS  = 800;   // poll interval (ms) — don't go below 500
+const OBS_WARN = 30;    // cm — obstacle warning threshold
+const OBS_STOP = 15;    // cm — obstacle stop threshold
+const SENS_MAX = 400;   // cm — max sensor range for bar scaling
 
-// ── State ──────────────────────────────────────────────────
+// ── State ─────────────────────────────────────────────────────────
 let map, vehicleMarker;
-let waypoints  = [], wpMarkers = [];
-let wpLine     = null, wpPoly  = null, covLine = null;
-let geoCircle  = null, geoOn   = false, geoRad = 50;
-let geoCLat    = null, geoCLng = null;
+let waypoints = [], wpMarkers = [];
+let wpLine = null, wpPoly = null, covLine = null;
+let geoCircle = null, geoOn = false, geoRad = 50;
+let geoCLat = null, geoCLng = null;
 let autoFollow = false;
-let allowWaypoint = false;      // enable click-add and form inputs
-let recording  = false, trackPts = [], trackLine = null;
-let lastTs     = 0, connLost = false;
+let allowWaypoint = false;
+let recording = false, trackPts = [], trackLine = null;
+let lastSuccessTs = 0;
+let connLost = false;
+let sidebarVisible = true;
+let consecutiveErrors = 0;
 
-// ── MAP INIT ───────────────────────────────────────────────
+// ── MAP INIT ──────────────────────────────────────────────────────
 function initMap() {
-  // Bogor default — will be overridden by browser geolocation + ESP32 GPS
   const BOGOR_LAT = -6.5971, BOGOR_LNG = 106.8060;
 
-  map = L.map('map', { zoomControl:true, attributionControl:false })
+  map = L.map('map', { zoomControl: true, attributionControl: false })
          .setView([BOGOR_LAT, BOGOR_LNG], 17);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 22, attribution: ''
   }).addTo(map);
 
-  // Vehicle marker with pulsing ring
   vehicleMarker = L.marker([BOGOR_LAT, BOGOR_LNG], {
-    icon: makeVehicleIcon(),
-    zIndexOffset: 1000
+    icon: makeVehicleIcon(), zIndexOffset: 1000
   }).addTo(map).bindPopup('<b style="font-family:Syne,sans-serif;">AI-TRAC</b>');
 
-  // Use browser geolocation to center map immediately at real location
+  // Center map on user location while waiting for GPS fix
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
-      pos => {
-        const lat = pos.coords.latitude, lng = pos.coords.longitude;
-        map.setView([lat, lng], 18);
-        console.log('Browser geolocation: map centered at', lat.toFixed(6), lng.toFixed(6));
-      },
-      err => console.log('Geolocation denied/unavailable, using Bogor default')
+      pos => map.setView([pos.coords.latitude, pos.coords.longitude], 18),
+      () => {}
     );
   }
 
-  // *** CLICK → INSTANT WAYPOINT ***
+  // Click-to-add waypoint
   map.on('click', function(e) {
-    if (!allowWaypoint) return; // ignore clicks when waypoints disabled
+    if (!allowWaypoint) return;
     const lat = e.latlng.lat, lng = e.latlng.lng;
-    const n   = document.getElementById('wpName').value.trim() || 'WP-' + (waypoints.length + 1);
-    addWP(n, lat, lng);
-    // Clear name field so next click auto-increments
+    const name = document.getElementById('wpName').value.trim() || 'WP-' + (waypoints.length + 1);
+    addWP(name, lat, lng);
     document.getElementById('wpName').value = '';
-    document.getElementById('wpLat').value  = lat.toFixed(6);
-    document.getElementById('wpLng').value  = lng.toFixed(6);
+    document.getElementById('wpLat').value = lat.toFixed(6);
+    document.getElementById('wpLng').value = lng.toFixed(6);
   });
 }
 
@@ -643,29 +581,30 @@ function makeVehicleIcon() {
       <div style="width:16px;height:16px;border-radius:50%;background:#00d4ff;border:2px solid #fff;box-shadow:0 0 12px rgba(0,212,255,0.8);z-index:2;position:relative;"></div>
       <style>@keyframes vping{0%{transform:scale(1);opacity:0.7}100%{transform:scale(2.4);opacity:0;}}</style>
     </div>`,
-    iconSize: [32,32], iconAnchor: [16,16]
+    iconSize: [32, 32], iconAnchor: [16, 16]
   });
 }
 
-// ── WAYPOINT MANAGEMENT ────────────────────────────────────
+// ── WAYPOINT MANAGEMENT ───────────────────────────────────────────
 function addWP(name, lat, lng) {
-  waypoints.push({name, lat, lng});
+  waypoints.push({ name, lat, lng });
 
-  // Numbered marker icon
   const num = waypoints.length;
   const icon = L.divIcon({
     className: '',
     html: `<div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#fbbf24,#f59e0b);border:2px solid #fff;box-shadow:0 2px 10px rgba(251,191,36,0.55);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#000;font-family:'Syne',sans-serif;">${num}</div>`,
-    iconSize:[26,26], iconAnchor:[13,13]
+    iconSize: [26, 26], iconAnchor: [13, 13]
   });
-  const m = L.marker([lat, lng], {icon}).addTo(map)
+
+  const m = L.marker([lat, lng], { icon }).addTo(map)
              .bindPopup(`<b style="font-family:Syne,sans-serif;">${esc(name)}</b><br><span style="font-family:'JetBrains Mono',monospace;font-size:11px;">${lat.toFixed(6)}, ${lng.toFixed(6)}</span>`);
   wpMarkers.push(m);
 
-  // Sync to server (non-blocking)
-  fetch('/api/waypoints/add', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({name, lat, lon:lng})
+  // Send to ESP32 via Flask proxy
+  fetch('api/waypoints/add', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, lat, lon: lng })
   }).catch(() => {});
 
   redrawMapOverlays();
@@ -673,32 +612,29 @@ function addWP(name, lat, lng) {
 }
 
 function redrawMapOverlays() {
-  // Clear old
-  if (wpLine)  { map.removeLayer(wpLine);  wpLine  = null; }
-  if (wpPoly)  { map.removeLayer(wpPoly);  wpPoly  = null; }
+  if (wpLine) { map.removeLayer(wpLine); wpLine = null; }
+  if (wpPoly) { map.removeLayer(wpPoly); wpPoly = null; }
+
+  setEl('mapWPn', waypoints.length);
+  setEl('wpBadge', waypoints.length + ' pts');
 
   if (waypoints.length < 2) {
-    setEl('mapArea', '—'); setEl('mapWPn', waypoints.length);
+    setEl('mapArea', '—');
     document.getElementById('areaWrap').style.display = 'none';
     return;
   }
 
   const ll = waypoints.map(w => [w.lat, w.lng]);
+  wpLine = L.polyline(ll, { color: '#00d4ff', weight: 2, opacity: 0.65, dashArray: '8 5' }).addTo(map);
 
-  // Connecting line (always)
-  wpLine = L.polyline(ll, {
-    color:'#00d4ff', weight:2, opacity:0.65, dashArray:'8 5'
-  }).addTo(map);
-
-  // Filled polygon (3+ points)
   if (waypoints.length >= 3) {
     wpPoly = L.polygon(ll, {
-      color:'#fbbf24', weight:1.5, opacity:0.85,
-      fillColor:'#fbbf24', fillOpacity:0.09
+      color: '#fbbf24', weight: 1.5, opacity: 0.85,
+      fillColor: '#fbbf24', fillOpacity: 0.09
     }).addTo(map);
 
     const aM2 = calcArea(waypoints);
-    const aStr = aM2 >= 10000 ? (aM2/10000).toFixed(4)+' ha' : aM2.toFixed(1)+' m²';
+    const aStr = aM2 >= 10000 ? (aM2 / 10000).toFixed(4) + ' ha' : aM2.toFixed(1) + ' m²';
     setEl('mapArea', aStr);
     setEl('areaLabel', aStr);
     document.getElementById('areaWrap').style.display = '';
@@ -706,30 +642,27 @@ function redrawMapOverlays() {
     setEl('mapArea', '—');
     document.getElementById('areaWrap').style.display = 'none';
   }
-
-  setEl('mapWPn', waypoints.length);
-  setEl('wpBadge', waypoints.length + ' pts');
 }
 
 function calcArea(pts) {
   const R = 6371000;
   let area = 0, n = pts.length;
   for (let i = 0; i < n; i++) {
-    const j = (i+1)%n;
-    const xi = pts[i].lng*Math.PI/180*R*Math.cos(pts[i].lat*Math.PI/180);
-    const yi = pts[i].lat*Math.PI/180*R;
-    const xj = pts[j].lng*Math.PI/180*R*Math.cos(pts[j].lat*Math.PI/180);
-    const yj = pts[j].lat*Math.PI/180*R;
-    area += xi*yj - xj*yi;
+    const j = (i + 1) % n;
+    const xi = pts[i].lng * Math.PI / 180 * R * Math.cos(pts[i].lat * Math.PI / 180);
+    const yi = pts[i].lat * Math.PI / 180 * R;
+    const xj = pts[j].lng * Math.PI / 180 * R * Math.cos(pts[j].lat * Math.PI / 180);
+    const yj = pts[j].lat * Math.PI / 180 * R;
+    area += xi * yj - xj * yi;
   }
-  return Math.abs(area/2);
+  return Math.abs(area / 2);
 }
 
 function addWaypointForm() {
-  const name = document.getElementById('wpName').value.trim() || 'WP-'+(waypoints.length+1);
+  const name = document.getElementById('wpName').value.trim() || 'WP-' + (waypoints.length + 1);
   const lat  = parseFloat(document.getElementById('wpLat').value);
   const lng  = parseFloat(document.getElementById('wpLng').value);
-  if (isNaN(lat)||isNaN(lng)) { alert('Enter valid coordinates or click on the map.'); return; }
+  if (isNaN(lat) || isNaN(lng)) { alert('Enter valid coordinates or click the map.'); return; }
   addWP(name, lat, lng);
   document.getElementById('wpName').value = '';
   document.getElementById('wpLat').value  = '';
@@ -738,8 +671,6 @@ function addWaypointForm() {
 
 function renderWPList() {
   const list = document.getElementById('wpList');
-  setEl('wpBadge', waypoints.length+' pts');
-  setEl('mapWPn', waypoints.length);
   if (!waypoints.length) {
     list.innerHTML = '<div class="no-data">Click on the map or enter coordinates above</div>';
     return;
@@ -749,7 +680,7 @@ function renderWPList() {
     const el = document.createElement('div');
     el.className = 'wp-item';
     el.innerHTML = `
-      <div class="wp-num">${i+1}</div>
+      <div class="wp-num">${i + 1}</div>
       <div class="wp-info">
         <div class="wp-name">${esc(wp.name)}</div>
         <div class="wp-coord">${wp.lat.toFixed(6)}, ${wp.lng.toFixed(6)}</div>
@@ -763,15 +694,14 @@ function deleteWP(i) {
   if (wpMarkers[i]) map.removeLayer(wpMarkers[i]);
   waypoints.splice(i, 1);
   wpMarkers.splice(i, 1);
-  // Re-number icons
   wpMarkers.forEach((m, idx) => {
     m.setIcon(L.divIcon({
-      className:'',
-      html:`<div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#fbbf24,#f59e0b);border:2px solid #fff;box-shadow:0 2px 10px rgba(251,191,36,0.55);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#000;font-family:'Syne',sans-serif;">${idx+1}</div>`,
-      iconSize:[26,26],iconAnchor:[13,13]
+      className: '',
+      html: `<div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#fbbf24,#f59e0b);border:2px solid #fff;box-shadow:0 2px 10px rgba(251,191,36,0.55);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#000;font-family:'Syne',sans-serif;">${idx + 1}</div>`,
+      iconSize: [26, 26], iconAnchor: [13, 13]
     }));
   });
-  fetch('/api/waypoints/delete?id='+i).catch(()=>{});
+  fetch('api/waypoints/delete?id=' + i).catch(() => {});
   redrawMapOverlays();
   renderWPList();
 }
@@ -779,43 +709,47 @@ function deleteWP(i) {
 function clearWPs() {
   if (!confirm('Clear all waypoints?')) return;
   wpMarkers.forEach(m => map.removeLayer(m));
-  waypoints=[]; wpMarkers=[];
-  if(wpLine){ map.removeLayer(wpLine); wpLine=null; }
-  if(wpPoly){ map.removeLayer(wpPoly); wpPoly=null; }
-  if(covLine){ map.removeLayer(covLine); covLine=null; }
-  setEl('mapPath','—');
+  waypoints = []; wpMarkers = [];
+  if (wpLine) { map.removeLayer(wpLine); wpLine = null; }
+  if (wpPoly) { map.removeLayer(wpPoly); wpPoly = null; }
+  if (covLine) { map.removeLayer(covLine); covLine = null; }
+  setEl('mapPath', '—');
   renderWPList();
   redrawMapOverlays();
-  fetch('/clearWaypoints').catch(()=>{});
+  fetch('clearWaypoints').catch(() => {});
 }
 
 function buildCoverage() {
-  if (waypoints.length < 3) { alert('Add ≥3 waypoints to define the field boundary.'); return; }
-  if (covLine) { map.removeLayer(covLine); covLine=null; }
-  const spacing = 0.000027; // ~3m between passes
-  const lats = waypoints.map(w=>w.lat), lngs = waypoints.map(w=>w.lng);
-  const minLat=Math.min(...lats), maxLat=Math.max(...lats);
-  const minLng=Math.min(...lngs), maxLng=Math.max(...lngs);
-  const path=[]; let row=0;
-  for(let lat=minLat; lat<=maxLat; lat+=spacing) {
-    path.push(row%2===0?[lat,minLng]:[lat,maxLng]);
-    path.push(row%2===0?[lat,maxLng]:[lat,minLng]);
+  if (waypoints.length < 3) { alert('Add ≥ 3 waypoints to define the field boundary.'); return; }
+  if (covLine) { map.removeLayer(covLine); covLine = null; }
+  const spacing = 0.000027;
+  const lats = waypoints.map(w => w.lat), lngs = waypoints.map(w => w.lng);
+  const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+  const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+  const path = []; let row = 0;
+  for (let lat = minLat; lat <= maxLat; lat += spacing) {
+    path.push(row % 2 === 0 ? [lat, minLng] : [lat, maxLng]);
+    path.push(row % 2 === 0 ? [lat, maxLng] : [lat, minLng]);
     row++;
   }
-  covLine = L.polyline(path, {color:'#10ffa0',weight:1.5,opacity:0.75,dashArray:'4 6'}).addTo(map);
-  setEl('mapPath', row+' passes');
+  covLine = L.polyline(path, { color: '#10ffa0', weight: 1.5, opacity: 0.75, dashArray: '4 6' }).addTo(map);
+  setEl('mapPath', row + ' passes');
 }
 
 function startNav() {
   if (!waypoints.length) { alert('Add waypoints first!'); return; }
-  fetch('/startNavigation').then(r=>{ if(r.ok) setMode('auto'); }).catch(e=>console.error(e));
+  fetch('startNavigation')
+    .then(r => r.json())
+    .then(d => { if (d.success !== false) setMode('auto'); })
+    .catch(e => console.error(e));
 }
 
-// ── GPS + MAP CONTROLS ─────────────────────────────────────
+// ── GPS + MAP CONTROLS ─────────────────────────────────────────────
 function toggleAutoFollow() {
   autoFollow = !autoFollow;
-  ['followBtn','followMapBtn'].forEach(id=>{
-    const b=document.getElementById(id); if(b) b.classList.toggle('active',autoFollow);
+  ['followBtn', 'followMapBtn'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) b.classList.toggle('active', autoFollow);
   });
 }
 
@@ -823,189 +757,280 @@ function centerOnVehicle() {
   if (vehicleMarker) map.setView(vehicleMarker.getLatLng(), map.getZoom());
 }
 
-// ── GEOFENCE ───────────────────────────────────────────────
+// ── GEOFENCE ──────────────────────────────────────────────────────
 function toggleGeofence() {
   geoOn = !geoOn;
-  const btn=document.getElementById('geoBtn');
-  const panel=document.getElementById('geoPanel');
+  const btn   = document.getElementById('geoBtn');
+  const panel = document.getElementById('geoPanel');
   if (geoOn) {
-    const pos=vehicleMarker.getLatLng();
-    geoCLat=pos.lat; geoCLng=pos.lng;
-    if(geoCircle) map.removeLayer(geoCircle);
-    geoCircle = L.circle([pos.lat,pos.lng],{
-      radius:geoRad, color:'#ff4444', fillColor:'#ff4444',
-      fillOpacity:0.06, weight:1.5, dashArray:'6 4'
+    const pos = vehicleMarker.getLatLng();
+    geoCLat = pos.lat; geoCLng = pos.lng;
+    if (geoCircle) map.removeLayer(geoCircle);
+    geoCircle = L.circle([pos.lat, pos.lng], {
+      radius: geoRad, color: '#ff4444', fillColor: '#ff4444',
+      fillOpacity: 0.06, weight: 1.5, dashArray: '6 4'
     }).addTo(map);
     btn.classList.add('active');
-    panel.style.display='';
-    setEl('mapGeo', geoRad+'m');
+    panel.style.display = '';
+    setEl('mapGeo', geoRad + 'm');
   } else {
-    if(geoCircle){ map.removeLayer(geoCircle); geoCircle=null; }
+    if (geoCircle) { map.removeLayer(geoCircle); geoCircle = null; }
     btn.classList.remove('active');
-    panel.style.display='none';
-    setEl('mapGeo','Off');
+    panel.style.display = 'none';
+    setEl('mapGeo', 'Off');
   }
 }
 
 function updateGeoRadius(v) {
-  geoRad=parseInt(v);
-  setEl('geoRadVal', v+' m');
-  if(geoOn&&geoCircle) geoCircle.setRadius(geoRad);
-  setEl('mapGeo', geoOn ? v+'m' : 'Off');
+  geoRad = parseInt(v);
+  setEl('geoRadVal', v + ' m');
+  if (geoOn && geoCircle) geoCircle.setRadius(geoRad);
+  setEl('mapGeo', geoOn ? v + 'm' : 'Off');
 }
 
-// ── DATA FETCH ─────────────────────────────────────────────
+// ── DATA FETCH ────────────────────────────────────────────────────
+// All requests go to Flask (same origin) — Flask proxies to ESP32.
 function fetchData() {
-  fetch(API)
-    .then(r=>r.json())
-    .then(d=>{ lastTs=Date.now(); setConn(true); render(d); })
-    .catch(()=>{ if(Date.now()-lastTs>3000) setConn(false); });
+  fetch('getData')
+    .then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(d => {
+      if (d.error && d.connected === false) {
+        // Flask could reach server but ESP32 is offline
+        consecutiveErrors++;
+        if (consecutiveErrors >= 2) setConnStatus(false, d.error);
+        return;
+      }
+      consecutiveErrors = 0;
+      lastSuccessTs = Date.now();
+      setConnStatus(true);
+      render(d);
+    })
+    .catch(() => {
+      consecutiveErrors++;
+      if (consecutiveErrors >= 2) setConnStatus(false, 'Flask server unreachable');
+    });
 }
 
-function setConn(ok) {
-  const b=document.getElementById('connBanner');
-  if(ok&&connLost){connLost=false;b.style.display='none';}
-  if(!ok&&!connLost){connLost=true;b.style.display='block';}
+// ── ESP32 connection status UI ────────────────────────────────────
+function setConnStatus(ok, errMsg) {
+  const el   = document.getElementById('esp32Status');
+  const txt  = document.getElementById('esp32StatusText');
+  const toast = document.getElementById('connBanner');
+
+  if (ok === 'connecting') {
+    el.className = 'connecting';
+    txt.textContent = 'Connecting…';
+    toast.style.display = 'none';
+    return;
+  }
+
+  if (ok) {
+    el.className = 'online';
+    txt.textContent = 'ESP32 Connected';
+    toast.style.display = 'none';
+    connLost = false;
+  } else {
+    el.className = 'offline';
+    txt.textContent = 'ESP32 Offline — ' + (errMsg || 'unreachable');
+    if (!connLost) { toast.style.display = 'block'; connLost = true; }
+  }
 }
 
+// ── ESP32 IP config ───────────────────────────────────────────────
+function toggleCfgPanel() {
+  const p = document.getElementById('cfgPanel');
+  p.style.display = p.style.display === 'none' ? '' : 'none';
+}
+
+function applyESP32Config() {
+  const newIP = document.getElementById('cfgIP').value.trim();
+  if (!newIP) return;
+  // Update the Flask config via a dedicated endpoint
+  fetch('api/esp32/setip', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ip: newIP })
+  })
+  .then(r => r.json())
+  .then(() => {
+    document.getElementById('esp32IPLabel').textContent = newIP;
+    toggleCfgPanel();
+    setConnStatus('connecting');
+    consecutiveErrors = 0;
+    fetchData();
+  })
+  .catch(() => {
+    // Even if Flask doesn't have /setip, update label and re-poll
+    document.getElementById('esp32IPLabel').textContent = newIP;
+    toggleCfgPanel();
+    fetchData();
+  });
+}
+
+// ── RENDER ────────────────────────────────────────────────────────
 function render(d) {
   setEl('lastUpdate', new Date().toLocaleTimeString());
-  // adjust waypoint UI based on mode
-  const modeVal = (d.mode||'MANUAL').toUpperCase();
+  const modeVal = (d.mode || 'MANUAL').toUpperCase();
   updateWaypointUI(modeVal);
 
+  // GPS
+  const lat = parseFloat(d.latitude), lng = parseFloat(d.longitude);
+  const sats = parseInt(d.gpsSats) || 0;
+  const gpsOk = (d.gpsValid === true || d.gpsValid === 'true') && sats >= 4;
 
-  // ── GPS ──────────────────────────────────────────────────
-  const lat=parseFloat(d.latitude), lng=parseFloat(d.longitude);
-  const sats=parseInt(d.gpsSats)||0;
-  const gpsOk = d.gpsValid && sats>=4;
-  setEl('latitude',  isNaN(lat)?'—':lat.toFixed(6));
-  setEl('longitude', isNaN(lng)?'—':lng.toFixed(6));
-  setEl('gpsSats', sats+' / 12');
-  setEl('speed',   d.speed!==undefined ? parseFloat(d.speed).toFixed(1)+' km/h' : '—');
-  setEl('heading', d.heading!==undefined ? parseFloat(d.heading).toFixed(0)+'°' : '—');
-  badge('gpsBadge', gpsOk?'b-ok':'b-warn', gpsOk?'✓ Valid Fix':'Searching');
+  setEl('latitude',  isNaN(lat) ? '—' : lat.toFixed(6));
+  setEl('longitude', isNaN(lng) ? '—' : lng.toFixed(6));
+  setEl('gpsSats',   sats + ' / 12');
+  setEl('speed',   d.speed   !== undefined ? parseFloat(d.speed).toFixed(1)   + ' km/h' : '—');
+  setEl('heading', d.heading !== undefined ? parseFloat(d.heading).toFixed(0) + '°'     : '—');
+  badge('gpsBadge', gpsOk ? 'b-ok' : 'b-warn', gpsOk ? '✓ Valid Fix' : 'Searching');
 
-  if(!isNaN(lat)&&!isNaN(lng)&&lat!==0&&lng!==0) {
-    vehicleMarker.setLatLng([lat,lng]);
-    if(autoFollow&&gpsOk) map.setView([lat,lng],map.getZoom());
-    // Track
-    if(recording&&gpsOk) {
-      const last=trackPts[trackPts.length-1];
-      if(!last||map.distance([lat,lng],last)>0.5) {
-        trackPts.push([lat,lng]);
+  if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+    vehicleMarker.setLatLng([lat, lng]);
+    if (autoFollow && gpsOk) map.setView([lat, lng], map.getZoom());
+
+    if (recording && gpsOk) {
+      const last = trackPts[trackPts.length - 1];
+      if (!last || map.distance([lat, lng], last) > 0.5) {
+        trackPts.push([lat, lng]);
         redrawTrack();
-        setEl('trackPts', trackPts.length+' pts');
+        setEl('trackPts', trackPts.length + ' pts');
       }
     }
-    // Geofence alert
-    if(geoOn&&geoCLat!==null) {
-      const dist=map.distance([lat,lng],[geoCLat,geoCLng]);
-      if(dist>geoRad) console.warn('GEOFENCE BREACH!');
+
+    if (geoOn && geoCLat !== null) {
+      if (map.distance([lat, lng], [geoCLat, geoCLng]) > geoRad) {
+        console.warn('GEOFENCE BREACH!');
+      }
     }
   }
 
-  // ── Remote ───────────────────────────────────────────────
-  const rOk=!!d.remoteConnected;
-  badge('remoteBadge', rOk?'b-ok':'b-err', rOk?'✓ Connected':'Disconnected');
-  if(rOk) {
-    const th=clamp(parseInt(d.remoteThrottle)||0,0,100);
-    const st=clamp(parseInt(d.remoteSteering)||0,-100,100);
-    setEl('rThrottle',th+'%'); setEl('rSteering',st+'%');
-    setEl('remoteMode',d.remoteMode||'—');
-    setEl('remoteSignal',d.remoteSignal?d.remoteSignal+' dBm':'OK');
-    setW('rThrottleBar',th); setW('rSteeringBar',50+st/2);
+  // Remote
+  const rOk = true;
+  badge('remoteBadge', rOk ? 'b-ok' : 'b-err', rOk ? '✓ Connected' : 'Disconnected');
+  if (rOk) {
+    const th = clamp(parseInt(d.remoteThrottle) || 0, 0, 100);
+    const st = clamp(parseInt(d.remoteSteering) || 0, -100, 100);
+    setEl('rThrottle',  th + '%');
+    setEl('rSteering',  st + '%');
+    setEl('remoteMode',   d.remoteMode   || '—');
+    setEl('remoteSignal', d.remoteSignal ? d.remoteSignal + ' dBm' : 'OK');
+    setW('rThrottleBar', th);
+    setW('rSteeringBar', 50 + st / 2);
   } else {
-    setEl('rThrottle','—');setEl('rSteering','—');
-    setEl('remoteMode','—');setEl('remoteSignal','—');
-    setW('rThrottleBar',0);setW('rSteeringBar',50);
+    setEl('rThrottle', '—'); setEl('rSteering', '—');
+    setEl('remoteMode', '—'); setEl('remoteSignal', '—');
+    setW('rThrottleBar', 0); setW('rSteeringBar', 50);
   }
 
-  // ── Vehicle ──────────────────────────────────────────────
-  const mode=(d.mode||'MANUAL').toUpperCase();
+  // Vehicle
+  const mode = (d.mode || 'MANUAL').toUpperCase();
   setEl('modeText', mode);
   document.getElementById('modeBanner').className = mode.toLowerCase();
-  badge('vmodeBadge','b-info',mode);
+  badge('vmodeBadge', 'b-info', mode);
 
-  const th=clamp(parseInt(d.throttle)||0,0,100);
-  const st=clamp(parseInt(d.steering)||0,-100,100);
-  setEl('throttleVal',th+'%'); setW('throttleBar',th);
-  setEl('steeringVal',st+'%'); setW('steeringBar',50+st/2);
+  const th = clamp(parseInt(d.throttle) || 0, 0, 100);
+  const st = clamp(parseInt(d.steering) || 0, -100, 100);
+  setEl('throttleVal', th + '%'); setW('throttleBar', th);
+  setEl('steeringVal', st + '%'); setW('steeringBar', 50 + st / 2);
 
-  ['Manual','Line','Auto'].forEach(m=>{
-    const b=document.getElementById('btn'+m);
-    if(b) b.classList.toggle('active', mode===m.toUpperCase());
+  ['Manual', 'Line', 'Auto'].forEach(m => {
+    const b = document.getElementById('btn' + m);
+    if (b) b.classList.toggle('active', mode === m.toUpperCase());
   });
 
-  document.getElementById('autoCard').style.display = mode==='AUTO'?'':'none';
-  document.getElementById('lineCard').style.display = mode==='LINE'?'':'none';
+  document.getElementById('autoCard').style.display = mode === 'AUTO' ? '' : 'none';
+  document.getElementById('lineCard').style.display = mode === 'LINE' ? '' : 'none';
 
-  if(d.autoCurrentWP!==undefined) setEl('autoWP',  d.autoCurrentWP||'—');
-  if(d.autoDistance !==undefined) setEl('autoDist', parseFloat(d.autoDistance).toFixed(2)+' m');
-  if(d.autoBearing  !==undefined) setEl('autoBear', parseFloat(d.autoBearing).toFixed(1)+'°');
-  if(d.autoHeading  !==undefined) setEl('autoHead', parseFloat(d.autoHeading).toFixed(1)+'°');
-  if(d.autoSteering !==undefined) setEl('autoStr',  d.autoSteering);
+  if (d.autoCurrentWP  !== undefined) setEl('autoWP',   d.autoCurrentWP);
+  if (d.autoDistance   !== undefined) setEl('autoDist',  parseFloat(d.autoDistance).toFixed(2) + ' m');
+  if (d.autoBearing    !== undefined) setEl('autoBear',  parseFloat(d.autoBearing).toFixed(1) + '°');
+  if (d.autoHeading    !== undefined) setEl('autoHead',  parseFloat(d.autoHeading).toFixed(1) + '°');
+  if (d.autoSteering   !== undefined) setEl('autoStr',   d.autoSteering);
 
-  if(d.lineSensorLeft !==undefined) setEl('lineL',parseFloat(d.lineSensorLeft).toFixed(1)+' cm');
-  if(d.lineSensorRight!==undefined) setEl('lineR',parseFloat(d.lineSensorRight).toFixed(1)+' cm');
-  if(d.lineSensorError!==undefined) setEl('lineE',parseFloat(d.lineSensorError).toFixed(2));
-  if(d.linePIDSteering!==undefined) setEl('lineP',d.linePIDSteering);
-  if(d.lineFollowStatus!==undefined) setEl('lineS',d.lineFollowStatus);
+  if (d.lineSensorLeft  !== undefined) setEl('lineL', parseFloat(d.lineSensorLeft).toFixed(1)  + ' cm');
+  if (d.lineSensorRight !== undefined) setEl('lineR', parseFloat(d.lineSensorRight).toFixed(1) + ' cm');
+  if (d.lineSensorError !== undefined) setEl('lineE', parseFloat(d.lineSensorError).toFixed(2));
+  if (d.linePIDSteering !== undefined) setEl('lineP', d.linePIDSteering);
+  if (d.lineFollowStatus!== undefined) setEl('lineS', d.lineFollowStatus);
 
-  // ── Sensors ──────────────────────────────────────────────
-  const sf=parseFloat(d.usFront),sl=parseFloat(d.usLeft),sr=parseFloat(d.usRight);
-  setEl('usFront',isNaN(sf)?'—':sf.toFixed(1)+' cm');
-  setEl('usLeft', isNaN(sl)?'—':sl.toFixed(1)+' cm');
-  setEl('usRight',isNaN(sr)?'—':sr.toFixed(1)+' cm');
-  setSBar('usFrontBar',sf); setSBar('usLeftBar',sl); setSBar('usRightBar',sr);
-  if(!isNaN(sf)&&sf<OBS_STOP){ badge('obsBadge','b-err','🚨 STOP '+sf.toFixed(0)+'cm'); setEl('obsStatus','STOP — '+sf.toFixed(0)+' cm'); }
-  else if(!isNaN(sf)&&sf<OBS_WARN){ badge('obsBadge','b-warn','⚠ '+sf.toFixed(0)+' cm'); setEl('obsStatus','Warning — '+sf.toFixed(0)+' cm'); }
-  else { badge('obsBadge','b-ok','Clear'); setEl('obsStatus','None'); }
+  // Sensors
+  const sf = parseFloat(d.usFront), sl = parseFloat(d.usLeft), sr = parseFloat(d.usRight);
+  setEl('usFront', isNaN(sf) ? '—' : sf.toFixed(1) + ' cm');
+  setEl('usLeft',  isNaN(sl) ? '—' : sl.toFixed(1) + ' cm');
+  setEl('usRight', isNaN(sr) ? '—' : sr.toFixed(1) + ' cm');
+  setSBar('usFrontBar', sf); setSBar('usLeftBar', sl); setSBar('usRightBar', sr);
 
-  // ── WiFi ─────────────────────────────────────────────────
-  const wOk=!!d.wifiConnected;
-  badge('wifiBadge',wOk?'b-ok':'b-warn',wOk?'✓ Connected':'AP Mode');
-  setEl('wSSID',d.wifiSSID||'—'); setEl('wIP',d.wifiIP||'—');
-  setEl('wMode',d.wifiMode||(wOk?'STA':'AP'));
-  setEl('wRSSI',(wOk&&d.wifiRSSI)?d.wifiRSSI+' dBm':'—');
+  if (!isNaN(sf) && sf < OBS_STOP) {
+    badge('obsBadge', 'b-err', '🚨 STOP ' + sf.toFixed(0) + 'cm');
+    setEl('obsStatus', 'STOP — ' + sf.toFixed(0) + ' cm');
+  } else if (!isNaN(sf) && sf < OBS_WARN) {
+    badge('obsBadge', 'b-warn', '⚠ ' + sf.toFixed(0) + ' cm');
+    setEl('obsStatus', 'Warning — ' + sf.toFixed(0) + ' cm');
+  } else {
+    badge('obsBadge', 'b-ok', 'Clear');
+    setEl('obsStatus', 'None');
+  }
 
-  // ── System ───────────────────────────────────────────────
-  setEl('sysTime',d.currentTime||'—');
-  const tzM={7:'WIB (UTC+7)',8:'WITA (UTC+8)',9:'WIT (UTC+9)'};
-  setEl('sysTZ',tzM[d.timezone]||(d.timezone!==undefined?'UTC+'+d.timezone:'—'));
-  const ss=document.getElementById('sysSync');
-  if(ss){ ss.textContent=(d.timeSynced&&d.gpsValid)?'✓ Synced (GPS)':'✗ Not synced'; ss.style.color=(d.timeSynced&&d.gpsValid)?'var(--c-green)':'var(--c-red)'; }
-  setEl('sysWP',d.waypointCount!==undefined?d.waypointCount:'—');
-  setEl('sysCurWP',d.currentWaypoint||'—');
+  // WiFi
+  const wOk = d.wifiConnected === true || d.wifiConnected === 'true';
+  badge('wifiBadge', wOk ? 'b-ok' : 'b-warn', wOk ? '✓ Connected' : 'AP Mode');
+  setEl('wSSID', d.wifiSSID || '—');
+  setEl('wIP',   d.wifiIP   || '—');
+  setEl('wMode', d.wifiMode || (wOk ? 'STA' : 'AP'));
+  setEl('wRSSI', (wOk && d.wifiRSSI) ? d.wifiRSSI + ' dBm' : '—');
+
+  // System
+  setEl('sysTime', d.currentTime || '—');
+  const tzMap = { 7: 'WIB (UTC+7)', 8: 'WITA (UTC+8)', 9: 'WIT (UTC+9)' };
+  setEl('sysTZ', tzMap[d.timezone] || (d.timezone !== undefined ? 'UTC+' + d.timezone : '—'));
+  const ss = document.getElementById('sysSync');
+  const synced = (d.timeSynced === true || d.timeSynced === 'true') && d.gpsValid;
+  if (ss) { ss.textContent = synced ? '✓ Synced (GPS)' : '✗ Not synced'; ss.style.color = synced ? 'var(--c-green)' : 'var(--c-red)'; }
+  setEl('sysWP',    d.waypointCount  !== undefined ? d.waypointCount  : '—');
+  setEl('sysCurWP', d.currentWaypoint !== undefined ? d.currentWaypoint : '—');
 }
 
-// ── MODE / ESTOP ───────────────────────────────────────────
+// ── MODE / ESTOP ──────────────────────────────────────────────────
 async function setMode(m) {
   const desired = String(m).toUpperCase();
-  // Optimistically update UI for responsiveness
+
+  // Optimistic UI update
   setEl('modeText', desired);
   document.getElementById('modeBanner').className = desired.toLowerCase();
-  ['Manual','Line','Auto'].forEach(x=>{ const b=document.getElementById('btn'+x); if(b) b.classList.toggle('active', desired===x.toUpperCase()); });
-  const autoCard=document.getElementById('autoCard'); if(autoCard) autoCard.style.display = desired==='AUTO' ? '' : 'none';
+  ['Manual', 'Line', 'Auto'].forEach(x => {
+    const b = document.getElementById('btn' + x);
+    if (b) b.classList.toggle('active', desired === x.toUpperCase());
+  });
+  const autoCard = document.getElementById('autoCard');
+  if (autoCard) autoCard.style.display = desired === 'AUTO' ? '' : 'none';
   updateWaypointUI(desired);
 
   try {
-    const res = await fetch('/setMode', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({mode: m, force: false})});
+    const res = await fetch('setMode', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: m })
+    });
     const data = await res.json();
-    if (!data || !data.get) {
-      // backward-compat: older endpoint returns direct JSON with success/current_mode
+
+    if (data && data.success === false) {
+      alert('Mode change failed: ' + (data.error || 'ESP32 unreachable'));
+      return;
     }
-    // if backend returned success and current_mode, apply authoritative mode
-    if (data && data.success) {
+    if (data && (data.current_mode || data.currentMode)) {
       const actual = (data.current_mode || data.currentMode || desired).toString().toUpperCase();
       setEl('modeText', actual);
       document.getElementById('modeBanner').className = actual.toLowerCase();
-      ['Manual','Line','Auto'].forEach(x=>{ const b=document.getElementById('btn'+x); if(b) b.classList.toggle('active', actual===x.toUpperCase()); });
-      if(autoCard) autoCard.style.display = actual==='AUTO' ? '' : 'none';
+      ['Manual', 'Line', 'Auto'].forEach(x => {
+        const b = document.getElementById('btn' + x);
+        if (b) b.classList.toggle('active', actual === x.toUpperCase());
+      });
+      if (autoCard) autoCard.style.display = actual === 'AUTO' ? '' : 'none';
       updateWaypointUI(actual);
-    } else if (data && data.success===false) {
-      alert('Mode change failed: '+(data.error||'unknown'));
-      // revert UI to server mode on next fetch cycle
     }
   } catch (e) {
     console.error('setMode error', e);
@@ -1013,41 +1038,53 @@ async function setMode(m) {
 }
 
 function emergencyStop() {
-  if(!confirm('EMERGENCY STOP — halt all motors immediately?')) return;
-  fetch('/emergencyStop').then(()=>{
-    document.getElementById('modeBanner').className='estop';
-    setEl('modeText','E-STOP');
-  }).catch(e=>console.error(e));
+  if (!confirm('EMERGENCY STOP — halt all motors immediately?')) return;
+  fetch('emergencyStop')
+    .then(() => {
+      document.getElementById('modeBanner').className = 'estop';
+      setEl('modeText', 'E-STOP');
+    })
+    .catch(e => console.error(e));
 }
 
-// ── WIFI ───────────────────────────────────────────────────
+// ── WIFI ──────────────────────────────────────────────────────────
 function scanWiFi() {
-  const btn=document.getElementById('scanBtn');
-  btn.disabled=true;
-  btn.innerHTML='<span style="display:inline-block;width:11px;height:11px;border:2px solid rgba(0,212,255,0.3);border-top-color:#00d4ff;border-radius:50%;animation:spin .6s linear infinite;margin-right:5px;"></span> Scanning';
-  fetch('/api/wifi/scan')
-    .then(r=>r.json()).then(d=>renderWifi(d.networks||[]))
-    .catch(()=>{document.getElementById('wifiNetList').innerHTML='<div class="no-data">Scan failed</div>';})
-    .finally(()=>{btn.disabled=false;btn.innerHTML='<i class="bi bi-search"></i> Scan';});
+  const btn = document.getElementById('scanBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="display:inline-block;width:11px;height:11px;border:2px solid rgba(0,212,255,0.3);border-top-color:#00d4ff;border-radius:50%;animation:spin .6s linear infinite;margin-right:5px;"></span> Scanning';
+  fetch('api/wifi/scan')
+    .then(r => r.json())
+    .then(d => renderWifi(d.networks || []))
+    .catch(() => { document.getElementById('wifiNetList').innerHTML = '<div class="no-data">Scan failed — ESP32 unreachable</div>'; })
+    .finally(() => { btn.disabled = false; btn.innerHTML = '<i class="bi bi-search"></i> Scan'; });
+}
+
+function toggleWifiList() {
+  const list = document.getElementById('wifiNetList');
+  const btn  = document.getElementById('wifiExpandBtn');
+  if (!list || !btn) return;
+  const expanded = list.classList.toggle('wifi-expanded');
+  btn.innerHTML = expanded ? '<i class="bi bi-arrows-angle-contract"></i>' : '<i class="bi bi-arrows-angle-expand"></i>';
+  btn.title = expanded ? 'Collapse list' : 'Expand list';
 }
 
 function renderWifi(nets) {
-  const el=document.getElementById('wifiNetList');
-  if(!nets.length){el.innerHTML='<div class="no-data">No networks found</div>';return;}
-  nets.sort((a,b)=>b.rssi-a.rssi);
-  el.innerHTML='';
-  nets.forEach(n=>{
-    const pct=Math.max(0,Math.min(100,(n.rssi+100)*2));
-    const bars=pct>66?4:pct>40?3:pct>20?2:1;
-    const d=document.createElement('div');
-    d.className='wifi-item';
-    d.innerHTML=`
+  const el = document.getElementById('wifiNetList');
+  if (!nets.length) { el.innerHTML = '<div class="no-data">No networks found</div>'; return; }
+  nets.sort((a, b) => b.rssi - a.rssi);
+  el.innerHTML = '';
+  nets.forEach(n => {
+    const pct  = Math.max(0, Math.min(100, (n.rssi + 100) * 2));
+    const bars = pct > 66 ? 4 : pct > 40 ? 3 : pct > 20 ? 2 : 1;
+    const d = document.createElement('div');
+    d.className = 'wifi-item';
+    d.innerHTML = `
       <div class="wifi-bars">
-        ${[4,8,12,16].map((h,i)=>`<span style="height:${h}px;" class="${i<bars?'lit':''}"></span>`).join('')}
+        ${[4, 8, 12, 16].map((h, i) => `<span style="height:${h}px;" class="${i < bars ? 'lit' : ''}"></span>`).join('')}
       </div>
       <div style="flex:1;">
         <div class="wifi-ssid">${esc(n.ssid)}</div>
-        <div class="wifi-meta">${n.rssi} dBm · Ch${n.channel||'?'} · ${n.secure||'Open'}</div>
+        <div class="wifi-meta">${n.rssi} dBm · Ch${n.channel || '?'} · ${n.secure || 'Open'}</div>
       </div>
       <button class="btn btn-green" onclick="connectWifi('${esc(n.ssid)}')" style="padding:5px 10px;font-size:10px;">Connect</button>`;
     el.appendChild(d);
@@ -1055,137 +1092,173 @@ function renderWifi(nets) {
 }
 
 function connectWifi(ssid) {
-  const pass=prompt('Password for "'+ssid+'" (leave blank if open):');
-  if(pass===null) return;
-  fetch('/api/wifi/connect',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ssid,password:pass})})
-    .then(r=>r.json()).then(d=>{
-      const ok=d.status==='connected'||d.status==='success'||d.success===true;
-      alert(ok?'✓ Connected to '+ssid:'✗ Failed: '+(d.message||'Unknown'));
-      if(ok) setTimeout(fetchData,2000);
-    }).catch(e=>alert('Error: '+e.message));
+  const pass = prompt('Password for "' + ssid + '" (leave blank if open):');
+  if (pass === null) return;
+  fetch('api/wifi/connect', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ssid, password: pass })
+  })
+  .then(r => r.json())
+  .then(d => {
+    const ok = d.status === 'connected' || d.status === 'success' || d.success === true || d.status === 'attempting';
+    alert(ok ? '✓ ' + (d.message || 'Connecting to ' + ssid) : '✗ Failed: ' + (d.message || 'Unknown'));
+    if (ok) setTimeout(fetchData, 3000);
+  })
+  .catch(e => alert('Error: ' + e.message));
 }
 
 function resetWiFi() {
-  if(!confirm('Reset WiFi to AP Mode?\nAI-TRAC-AP / 12345678')) return;
-  fetch('/api/wifi/reset',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
-    .then(()=>alert('✓ WiFi reset. Connect to: AI-TRAC-AP')).catch(e=>alert('Error: '+e.message));
+  if (!confirm('Reset ESP32 WiFi to AP Mode?\nSSID: AI-TRAC / Password: 12345678')) return;
+  fetch('api/wifi/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+    .then(() => alert('✓ WiFi reset. Reconnect to: AI-TRAC'))
+    .catch(e => alert('Error: ' + e.message));
 }
 
-// ── TRACK RECORDING ────────────────────────────────────────
+// ── TRACK RECORDING ───────────────────────────────────────────────
 function toggleRecord() {
-  recording=!recording;
-  const btn=document.getElementById('recBtn');
-  if(recording) {
-    trackPts=[];
-    btn.innerHTML='<i class="bi bi-stop-circle-fill"></i> Stop Recording';
-    btn.className=btn.className.replace('btn-green','btn-red');
+  recording = !recording;
+  const btn = document.getElementById('recBtn');
+  if (recording) {
+    trackPts = [];
+    btn.innerHTML = '<i class="bi bi-stop-circle-fill"></i> Stop Recording';
+    btn.className  = btn.className.replace('btn-green', 'btn-red');
   } else {
-    btn.innerHTML='<i class="bi bi-circle-fill"></i> Start Recording';
-    btn.className=btn.className.replace('btn-red','btn-green');
-    autoSave();
+    btn.innerHTML = '<i class="bi bi-circle-fill"></i> Start Recording';
+    btn.className  = btn.className.replace('btn-red', 'btn-green');
+    autoSave(false);
   }
 }
 
 function redrawTrack() {
-  if(trackLine) map.removeLayer(trackLine);
-  if(trackPts.length>1) trackLine=L.polyline(trackPts,{color:'#ff4444',weight:2.5,opacity:0.9,dashArray:'5 10'}).addTo(map);
+  if (trackLine) map.removeLayer(trackLine);
+  if (trackPts.length > 1) trackLine = L.polyline(trackPts, { color: '#ff4444', weight: 2.5, opacity: 0.9, dashArray: '5 10' }).addTo(map);
 }
 
 function clearTrack() {
-  if(!confirm('Clear track?')) return;
-  trackPts=[];recording=false;
-  if(trackLine){map.removeLayer(trackLine);trackLine=null;}
-  setEl('trackPts','0 pts');
-  const btn=document.getElementById('recBtn');
-  btn.innerHTML='<i class="bi bi-circle-fill"></i> Start Recording';
-  btn.className=btn.className.replace('btn-red','btn-green');
-  fetch('/api/track/clear',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).catch(()=>{});
+  if (!confirm('Clear track?')) return;
+  trackPts = []; recording = false;
+  if (trackLine) { map.removeLayer(trackLine); trackLine = null; }
+  setEl('trackPts', '0 pts');
+  const btn = document.getElementById('recBtn');
+  btn.innerHTML = '<i class="bi bi-circle-fill"></i> Start Recording';
+  btn.className  = btn.className.replace('btn-red', 'btn-green');
+  fetch('api/track/clear', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }).catch(() => {});
 }
 
 function exportTrack() {
-  if(!trackPts.length){alert('No track recorded');return;}
-  const blob=new Blob([JSON.stringify({ts:new Date().toISOString(),points:trackPts,count:trackPts.length},null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='track_'+Date.now()+'.json';a.click();URL.revokeObjectURL(a.href);
+  if (!trackPts.length) { alert('No track recorded'); return; }
+  const blob = new Blob([JSON.stringify({ ts: new Date().toISOString(), points: trackPts, count: trackPts.length }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'track_' + Date.now() + '.json'; a.click(); URL.revokeObjectURL(a.href);
 }
 
-function saveTrack(){ if(!trackPts.length){alert('No track to save');return;}autoSave(true); }
+function saveTrack() { if (!trackPts.length) { alert('No track to save'); return; } autoSave(true); }
 
 function autoSave(showAlert) {
-  fetch('/api/track/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({points:trackPts,timestamp:new Date().toISOString()})})
-    .then(r=>r.json()).then(d=>{if(showAlert)alert(d.success?'✓ Saved':'✗ Failed');}).catch(()=>{});
+  fetch('api/track/save', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ points: trackPts, timestamp: new Date().toISOString() })
+  })
+  .then(r => r.json())
+  .then(d => { if (showAlert) alert(d.success ? '✓ Saved to ESP32' : '✗ Save failed'); })
+  .catch(() => { if (showAlert) alert('✗ Could not reach ESP32'); });
 }
 
 function loadTrack() {
-  fetch('/api/track/load').then(r=>r.json()).then(d=>{
-    if(d.success&&d.points&&d.points.length){
-      trackPts=d.points.map(p=>Array.isArray(p)?p:[p.lat,p.lng]);
-      redrawTrack(); setEl('trackPts',trackPts.length+' pts');
-    } else alert('No saved track found');
-  }).catch(e=>console.error(e));
+  fetch('api/track/load')
+    .then(r => r.json())
+    .then(d => {
+      if (d.success && d.points && d.points.length) {
+        trackPts = d.points.map(p => Array.isArray(p) ? p : [p.lat, p.lng]);
+        redrawTrack(); setEl('trackPts', trackPts.length + ' pts');
+      } else { alert('No saved track found on ESP32'); }
+    })
+    .catch(e => console.error(e));
 }
 
 function loadServerWPs() {
-  fetch('/api/waypoints/list').then(r=>r.json()).then(d=>{
-    if(d.waypoints&&d.waypoints.length){
-      wpMarkers.forEach(m=>map.removeLayer(m));
-      waypoints=[];wpMarkers=[];
-      d.waypoints.forEach((wp,i)=>{
-        const lt=parseFloat(wp.lat),ln=parseFloat(wp.lon||wp.lng);
-        waypoints.push({name:wp.name,lat:lt,lng:ln});
-        addWP(wp.name,lt,ln);
-        wpMarkers.pop(); // addWP already pushed, avoid double
-        const icon=L.divIcon({className:'',html:`<div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#fbbf24,#f59e0b);border:2px solid #fff;box-shadow:0 2px 10px rgba(251,191,36,0.55);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#000;font-family:'Syne',sans-serif;">${i+1}</div>`,iconSize:[26,26],iconAnchor:[13,13]});
-        const m=L.marker([lt,ln],{icon}).addTo(map).bindPopup(`<b>${esc(wp.name)}</b>`);
-        wpMarkers.push(m);
-      });
-      waypoints=d.waypoints.map(wp=>({name:wp.name,lat:parseFloat(wp.lat),lng:parseFloat(wp.lon||wp.lng)}));
-      redrawMapOverlays();renderWPList();
-    }
-  }).catch(()=>{});
+  fetch('api/waypoints/list')
+    .then(r => r.json())
+    .then(d => {
+      if (d.waypoints && d.waypoints.length) {
+        wpMarkers.forEach(m => map.removeLayer(m));
+        waypoints = []; wpMarkers = [];
+        d.waypoints.forEach(wp => {
+          const lt = parseFloat(wp.lat), ln = parseFloat(wp.lon || wp.lng);
+          if (!isNaN(lt) && !isNaN(ln)) addWP(wp.name, lt, ln);
+        });
+      }
+    })
+    .catch(() => {});
 }
 
-// ── WAYPOINT ENABLE/DISABLE ───────────────────────────────
+// ── WAYPOINT ENABLE / DISABLE ─────────────────────────────────────
 function updateWaypointUI(mode) {
-  // mode is uppercase string
-  allowWaypoint = (mode === 'LINE');
-  const fields = ['wpName','wpLat','wpLng'];
-  fields.forEach(id=>{
-    const el=document.getElementById(id);
-    if(el) el.disabled = !allowWaypoint;
-  });
-  const addBtn = document.querySelector('button[onclick="addWaypointForm()"]');
-  if(addBtn) addBtn.disabled = !allowWaypoint;
-  // also disable start nav if no waypoints
-  const startBtn = document.querySelector('button[onclick="startNav()"]');
-  if(startBtn) startBtn.disabled = !allowWaypoint;
+  // Allow map-click waypoints in LINE and AUTO mode
+  allowWaypoint = (mode === 'LINE' || mode === 'AUTO');
+  const inputs = ['wpName', 'wpLat', 'wpLng'];
+  inputs.forEach(id => { const e = document.getElementById(id); if (e) e.disabled = false; }); // always editable
+  const addBtn   = document.getElementById('btnAddWP');
+  const startBtn = document.getElementById('btnStartNav');
+  if (addBtn)   addBtn.disabled   = false;  // always allow manual add
+  if (startBtn) startBtn.disabled = !waypoints.length;
+  // Update map hint
+  const hint = document.querySelector('.map-hint');
+  if (hint) hint.textContent = allowWaypoint
+    ? '🖱 Click anywhere on map to add a waypoint'
+    : '🔒 Switch to LINE or AUTO mode to add waypoints by clicking the map';
 }
 
-// ── HELPERS ────────────────────────────────────────────────
-function setEl(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
-function setW(id,pct){const e=document.getElementById(id);if(e)e.style.width=clamp(pct,0,100)+'%';}
-function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
-function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
-function badge(id,cls,txt){const e=document.getElementById(id);if(e){e.className='badge '+cls;e.textContent=txt;}}
-function setSBar(id,cm){
-  const e=document.getElementById(id);if(!e)return;
-  if(isNaN(cm)||cm<=0){e.style.width='0%';return;}
-  e.style.width=Math.min(100,(cm/SENS_MAX)*100)+'%';
-  e.className='sensf '+(cm<OBS_STOP?'s-crit':cm<OBS_WARN?'s-warn':'s-ok');
+// ── SIDEBAR TOGGLE ─────────────────────────────────────────────────
+function toggleSidebar() {
+  sidebarVisible = !sidebarVisible;
+  if (!sidebarVisible) {
+    document.body.classList.add('sidebar-hidden');
+    document.getElementById('sidebarToggleBtn').classList.add('visible');
+    document.getElementById('toggleSidebarBtn').style.display = 'none';
+    map.invalidateSize();
+  } else {
+    document.body.classList.remove('sidebar-hidden');
+    document.getElementById('sidebarToggleBtn').classList.remove('visible');
+    document.getElementById('toggleSidebarBtn').style.display = '';
+    map.invalidateSize();
+  }
 }
 
-// Inject spinner animation
-document.head.insertAdjacentHTML('beforeend','<style>@keyframes spin{to{transform:rotate(360deg);}}</style>');
+// ── HELPERS ───────────────────────────────────────────────────────
+function setEl(id, v)    { const e = document.getElementById(id); if (e) e.textContent = v; }
+function setW(id, pct)   { const e = document.getElementById(id); if (e) e.style.width = clamp(pct, 0, 100) + '%'; }
+function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+function esc(s)          { return String(s).replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
+function badge(id, cls, txt) { const e = document.getElementById(id); if (e) { e.className = 'badge ' + cls; e.textContent = txt; } }
+function setSBar(id, cm) {
+  const e = document.getElementById(id); if (!e) return;
+  if (isNaN(cm) || cm <= 0) { e.style.width = '0%'; return; }
+  e.style.width = Math.min(100, (cm / SENS_MAX) * 100) + '%';
+  e.className = 'sensf ' + (cm < OBS_STOP ? 's-crit' : cm < OBS_WARN ? 's-warn' : 's-ok');
+}
 
-// ── BOOT ───────────────────────────────────────────────────
-window.addEventListener('load',()=>{
+// Inject spinner keyframe
+document.head.insertAdjacentHTML('beforeend', '<style>@keyframes spin{to{transform:rotate(360deg);}}</style>');
+
+// ── BOOT ──────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
   initMap();
-  loadServerWPs();
-  // disable waypoint controls initially until we know the mode
+
+  // Mark as connecting initially
+  document.getElementById('esp32Status').className = 'connecting';
+
+  // Load waypoints from ESP32 after short delay
+  setTimeout(loadServerWPs, 800);
+  setTimeout(loadTrack, 1200);
+
   updateWaypointUI('MANUAL');
-  setTimeout(loadTrack,700);
+
+  // Start polling
   fetchData();
   setInterval(fetchData, POLL_MS);
-  setInterval(()=>{ if(recording&&trackPts.length) autoSave(false); }, 15000);
+
+  // Auto-save track every 15s when recording
+  setInterval(() => { if (recording && trackPts.length) autoSave(false); }, 15000);
 });
 </script>
 {% endblock %}
